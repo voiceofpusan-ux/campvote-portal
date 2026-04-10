@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampVote 시연</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#07090E;--bg2:#0E1118;--bg3:#151A26;--bg4:#1C2230;
+  --gold:#C9A84C;--gold2:#F0D080;--gold3:#7A5A1A;
+  --green:#10B981;--red:#E03030;--blue:#2A5AE0;--orange:#E07020;
+  --text:#E2E8F0;--muted:#64748B;--w:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh}
+
+/* ── 인트로 오버레이 ── */
+#intro{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:20px;transition:opacity .8s}
+#intro.hide{opacity:0;pointer-events:none}
+.intro-logo{font-family:'Bebas Neue',sans-serif;font-size:80px;letter-spacing:.2em;background:linear-gradient(135deg,var(--gold3),var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:logoPulse 1.5s ease-out}
+@keyframes logoPulse{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+.intro-sub{font-size:18px;color:var(--muted);letter-spacing:.1em;animation:fadeIn .8s .5s both}
+.intro-btn{margin-top:20px;padding:16px 48px;background:linear-gradient(135deg,var(--gold3),var(--gold));color:var(--bg);font-size:14px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;border:none;cursor:pointer;animation:fadeIn .8s 1s both;transition:transform .2s,box-shadow .2s}
+.intro-btn:hover{transform:translateY(-3px);box-shadow:0 20px 50px rgba(201,168,76,.4)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── 레이아웃 ── */
+.app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+
+/* ── 사이드바 ── */
+.sidebar{background:var(--bg2);border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;padding:0}
+.sidebar-header{padding:24px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sidebar-logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.18em;color:var(--gold)}
+.sidebar-camp{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
+.sidebar-live{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--green);font-weight:700}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 1.3s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.sidebar-nav{flex:1;padding:16px 12px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;margin-bottom:4px}
+.nav-item:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.nav-item.active{background:rgba(201,168,76,.1);color:var(--gold)}
+.nav-icon{font-size:16px;width:20px;text-align:center}
+.sidebar-stats{padding:16px 20px;border-top:1px solid rgba(255,255,255,.06)}
+.ss-label{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.ss-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ss-key{font-size:12px;color:var(--muted)}
+.ss-val{font-size:13px;font-weight:700;color:var(--gold)}
+
+/* ── 메인 콘텐츠 ── */
+.main{display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--bg2);border-bottom:1px solid rgba(255,255,255,.06);padding:14px 28px;display:flex;justify-content:space-between;align-items:center}
+.topbar-left{display:flex;flex-direction:column;gap:2px}
+.topbar-title{font-size:16px;font-weight:700}
+.topbar-sub{font-size:11px;color:var(--muted)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.time-badge{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);letter-spacing:.08em}
+.alarm-btn{padding:6px 14px;background:rgba(224,48,48,.15);border:1px solid rgba(224,48,48,.3);color:#F87171;font-size:11px;font-weight:700;border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:5px}
+.alarm-cnt{background:var(--red);color:#fff;font-size:9px;font-weight:900;padding:1px 5px;border-radius:10px}
+
+/* ── 대시보드 그리드 ── */
+.dashboard{padding:24px;display:flex;flex-direction:column;gap:20px;flex:1;overflow-y:auto}
+.stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.sc{background:var(--bg3);border-radius:10px;padding:18px 20px;border:1px solid rgba(255,255,255,.05);position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sc.gold::before{background:linear-gradient(90deg,var(--gold3),var(--gold))}
+.sc.green::before{background:var(--green)}
+.sc.blue::before{background:var(--blue)}
+.sc.red::before{background:var(--red)}
+.sc-label{font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:.06em}
+.sc-num{font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1;color:var(--text);margin-bottom:3px;transition:all .3s}
+.sc-num.flash{animation:numFlash .4s ease}
+@keyframes numFlash{0%,100%{opacity:1}50%{opacity:.3;transform:scale(1.05)}}
+.sc-sub{font-size:11px;color:var(--muted)}
+.sc-sub .up{color:var(--green)}.sc-sub .dn{color:var(--red)}
+.sc-icon{position:absolute;bottom:12px;right:14px;font-size:28px;opacity:.15}
+
+/* ── 차트 영역 ── */
+.chart-row{display:grid;grid-template-columns:1fr 320px;gap:16px}
+.chart-card{background:var(--bg3);border-radius:10px;padding:20px;border:1px solid rgba(255,255,255,.05)}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:700}
+.card-badge{font-size:10px;padding:3px 8px;border-radius:4px;font-weight:700}
+.cb-live{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.cb-warn{background:rgba(224,48,48,.15);color:#F87171;border:1px solid rgba(224,48,48,.3)}
+.chart-wrap{position:relative;height:200px}
+
+/* ── 동별 현황 테이블 ── */
+.dong-table{width:100%;border-collapse:collapse}
+.dong-table th{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.08em;padding:6px 10px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.07);text-align:left}
+.dong-table td{padding:9px 10px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.dong-table tr:last-child td{border-bottom:none}
+.dong-table tr:hover td{background:rgba(255,255,255,.02)}
+.dong-name{font-weight:600;color:var(--text)}
+.dong-reporter{color:var(--muted);font-size:11px}
+.dong-time{font-size:11px;color:var(--muted)}
+.dong-votes{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold);text-align:right}
+.dong-bar-cell{width:100px}
+.dong-bar-track{height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
+.dong-bar-fill{height:100%;border-radius:2px;transition:width 1s ease}
+.status-pill{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.06em}
+.sp-ok{background:rgba(16,185,129,.15);color:var(--green)}
+.sp-warn{background:rgba(224,48,48,.15);color:#F87171}
+.sp-none{background:rgba(100,116,139,.15);color:var(--muted)}
+
+/* ── 시간대별 흐름 ── */
+.timeline-card{background:var(--bg3);border-radius:10px;padding:20px;border:1px solid rgba(255,255,255,.05)}
+.tl-bars{display:flex;align-items:flex-end;gap:6px;height:80px;margin-top:12px}
+.tl-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.tl-bar{width:100%;border-radius:3px 3px 0 0;transition:height .8s ease;min-height:4px}
+.tl-bar-label{font-size:9px;color:var(--muted)}
+.tl-bar-val{font-size:9px;color:var(--text);font-weight:700}
+
+/* ── 입력 화면 패널 ── */
+.input-panel{background:var(--bg3);border-radius:10px;padding:20px;border:1px solid rgba(255,255,255,.05)}
+.ip-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.07)}
+.ip-avatar{width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.15);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--gold)}
+.ip-info h4{font-size:13px;font-weight:700}
+.ip-info p{font-size:11px;color:var(--muted)}
+.ip-field{margin-bottom:12px}
+.ip-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.ip-val{font-size:14px;font-weight:600;color:var(--text);background:var(--bg4);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:8px 12px}
+.ip-val.highlight{border-color:var(--gold);color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:22px}
+.ip-submit{width:100%;padding:12px;background:linear-gradient(135deg,var(--gold3),var(--gold));color:var(--bg);font-size:13px;font-weight:900;letter-spacing:.1em;border:none;border-radius:6px;cursor:pointer;margin-top:4px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.ip-submit:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(201,168,76,.35)}
+.ip-submit:disabled{opacity:.5;cursor:default;transform:none}
+.submit-anim{animation:submitPulse .6s ease}
+@keyframes submitPulse{0%{transform:scale(1)}50%{transform:scale(.97)}100%{transform:scale(1)}}
+
+/* ── 토스트 알림 ── */
+#toast-container{position:fixed;top:80px;right:24px;z-index:1000;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--bg3);border:1px solid rgba(16,185,129,.3);border-left:3px solid var(--green);border-radius:6px;padding:12px 16px;min-width:260px;animation:toastIn .4s ease;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.toast.warning{border-color:rgba(224,48,48,.3);border-left-color:var(--red)}
+.toast-title{font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px}
+.toast.warning .toast-title{color:#F87171}
+.toast-body{font-size:11px;color:var(--muted)}
+.toast.out{animation:toastOut .3s ease forwards}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{to{opacity:0;transform:translateX(20px)}}
+
+/* ── 시연 컨트롤 패널 ── */
+#demo-ctrl{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:500;background:rgba(14,17,24,.95);backdrop-filter:blur(16px);border:1px solid rgba(201,168,76,.25);border-radius:40px;padding:12px 28px;display:flex;align-items:center;gap:16px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.ctrl-label{font-size:11px;color:var(--muted);letter-spacing:.08em;white-space:nowrap}
+.ctrl-btn{padding:8px 18px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.08em;border:none;cursor:pointer;transition:all .2s;white-space:nowrap}
+.ctrl-btn.gold{background:linear-gradient(135deg,var(--gold3),var(--gold));color:var(--bg)}
+.ctrl-btn.gold:hover{box-shadow:0 6px 20px rgba(201,168,76,.4)}
+.ctrl-btn.ghost{background:rgba(255,255,255,.08);color:var(--text);border:1px solid rgba(255,255,255,.12)}
+.ctrl-btn.ghost:hover{background:rgba(255,255,255,.14)}
+.ctrl-btn.warn{background:rgba(224,48,48,.2);color:#F87171;border:1px solid rgba(224,48,48,.3)}
+.ctrl-btn:disabled{opacity:.4;cursor:default;transform:none}
+.ctrl-step{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold);min-width:60px;text-align:center}
+.ctrl-divider{width:1px;height:24px;background:rgba(255,255,255,.1)}
+
+/* ── 진행 단계 표시 ── */
+#step-indicator{position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:400;display:flex;gap:6px}
+.step-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);transition:all .4s}
+.step-dot.active{background:var(--gold);box-shadow:0 0 10px rgba(201,168,76,.5);width:24px;border-radius:4px}
+.step-dot.done{background:var(--green)}
+
+/* ── 나레이션 자막 ── */
+#narration{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:400;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);padding:10px 24px;border-radius:4px;font-size:14px;color:#fff;text-align:center;max-width:700px;line-height:1.5;transition:opacity .5s;border-bottom:2px solid var(--gold);pointer-events:none}
+#narration.hide{opacity:0}
+
+/* ── 비교 오버레이 ── */
+#compare-overlay{position:fixed;inset:0;z-index:800;background:rgba(7,9,14,.92);display:none;flex-direction:column;justify-content:center;align-items:center;gap:20px;padding:40px}
+#compare-overlay.show{display:flex}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;width:100%}
+.cmp-card{background:var(--bg3);border-radius:12px;padding:28px;border:1px solid rgba(255,255,255,.08)}
+.cmp-card.exit-card{border-top:3px solid #2A5AE0}
+.cmp-card.camp-card{border-top:3px solid var(--gold)}
+.cmp-title{font-size:16px;font-weight:700;margin-bottom:20px}
+.cmp-items{display:flex;flex-direction:column;gap:10px}
+.cmp-item{display:flex;gap:10px;align-items:flex-start}
+.cmp-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.cmp-dot.blue{background:#2A5AE0}.cmp-dot.gold{background:var(--gold)}.cmp-dot.red{background:var(--red)}
+.cmp-text{font-size:13px;color:var(--muted);line-height:1.5}
+.cmp-text strong{color:var(--text)}
+.cmp-close{padding:10px 28px;background:linear-gradient(135deg,var(--gold3),var(--gold));color:var(--bg);font-size:12px;font-weight:900;letter-spacing:.1em;border:none;border-radius:4px;cursor:pointer;transition:all .2s}
+.cmp-close:hover{box-shadow:0 8px 24px rgba(201,168,76,.4)}
+.compare-title{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--gold);letter-spacing:.1em;text-align:center}
+@media print{
+  #intro{display:none!important}
+  .sidebar{display:none!important}
+  .app{grid-template-columns:1fr!important}
+  *{animation:none!important;transition:none!important}
+  body{overflow:visible!important}
+  .compare-overlay{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- 인트로 -->
+<div id="intro">
+  <div class="intro-logo">CampVote</div>
+  <div class="intro-sub">실시간 경선 투표 집계 시스템 · 시연</div>
+  <button class="intro-btn" onclick="startDemo()">시연 시작하기</button>
+</div>
+
+<!-- 단계 표시 -->
+<div id="step-indicator">
+  <div class="step-dot active" id="dot0"></div>
+  <div class="step-dot" id="dot1"></div>
+  <div class="step-dot" id="dot2"></div>
+  <div class="step-dot" id="dot3"></div>
+  <div class="step-dot" id="dot4"></div>
+  <div class="step-dot" id="dot5"></div>
+  <div class="step-dot" id="dot6"></div>
+</div>
+
+<!-- 나레이션 자막 -->
+<div id="narration" class="hide"></div>
+
+<!-- 토스트 컨테이너 -->
+<div id="toast-container"></div>
+
+<!-- 비교 오버레이 -->
+<div id="compare-overlay">
+  <div class="compare-title">출구조사 vs CampVote</div>
+  <div class="compare-grid">
+    <div class="cmp-card exit-card">
+      <div class="cmp-title" style="color:#7BA4FF">📊 출구조사 (기존)</div>
+      <div class="cmp-items">
+        <div class="cmp-item"><div class="cmp-dot blue"></div><div class="cmp-text"><strong>투표 마감 후</strong> 1회 발표</div></div>
+        <div class="cmp-item"><div class="cmp-dot blue"></div><div class="cmp-text"><strong>샘플링 기반</strong> 통계적 추정치</div></div>
+        <div class="cmp-item"><div class="cmp-dot blue"></div><div class="cmp-text">누가 이길 것인가 — <strong>결과 예측</strong></div></div>
+        <div class="cmp-item"><div class="cmp-dot red"></div><div class="cmp-text">투표 진행 중 <strong>공표 금지 (선거법)</strong></div></div>
+        <div class="cmp-item"><div class="cmp-dot red"></div><div class="cmp-text">투표 당일 수 시간 <strong>방송 공백</strong></div></div>
+      </div>
+    </div>
+    <div class="cmp-card camp-card">
+      <div class="cmp-title" style="color:var(--gold)">⚡ CampVote (새로운 데이터)</div>
+      <div class="cmp-items">
+        <div class="cmp-item"><div class="cmp-dot gold"></div><div class="cmp-text"><strong>투표 시작부터</strong> 실시간 연속 데이터</div></div>
+        <div class="cmp-item"><div class="cmp-dot gold"></div><div class="cmp-text"><strong>현장 직접 카운팅</strong> — 추정 아닌 실측</div></div>
+        <div class="cmp-item"><div class="cmp-dot gold"></div><div class="cmp-text">어떻게 진행되는가 — <strong>과정 실시간 기록</strong></div></div>
+        <div class="cmp-item"><div class="cmp-dot gold"></div><div class="cmp-text">투표 참여 현황은 <strong>공표 금지 대상 아님</strong></div></div>
+        <div class="cmp-item"><div class="cmp-dot gold"></div><div class="cmp-text">투표 중 내내 <strong>방송·유튜브 생중계 가능</strong></div></div>
+      </div>
+    </div>
+  </div>
+  <button class="cmp-close" onclick="closeCompare()">확인 — 시연 계속</button>
+</div>
+
+<!-- 앱 -->
+<div class="app">
+
+  <!-- 사이드바 -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">CampVote</div>
+      <div class="sidebar-camp">서울특별시 송파구갑<br>더불어민주당 경선</div>
+      <div class="sidebar-live"><span class="live-dot"></span>실시간 연결됨</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active"><span class="nav-icon">📊</span>실시간 대시보드</div>
+      <div class="nav-item"><span class="nav-icon">📍</span>동별 현황</div>
+      <div class="nav-item"><span class="nav-icon">📈</span>시간대별 추세</div>
+      <div class="nav-item"><span class="nav-icon">🔔</span>알림 <span style="background:var(--red);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:4px" id="alertBadge">0</span></div>
+      <div class="nav-item"><span class="nav-icon">📥</span>데이터 내보내기</div>
+    </div>
+    <div class="sidebar-stats">
+      <div class="ss-label">캠프 정보</div>
+      <div class="ss-row"><span class="ss-key">담당 선거구</span><span class="ss-val">송파구갑</span></div>
+      <div class="ss-row"><span class="ss-key">현장책임자</span><span class="ss-val">14명</span></div>
+      <div class="ss-row"><span class="ss-key">목표 득표수</span><span class="ss-val">1,500표</span></div>
+      <div class="ss-row"><span class="ss-key">경선일</span><span class="ss-val">2026.04.15</span></div>
+    </div>
+  </div>
+
+  <!-- 메인 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">실시간 투표 현황 대시보드</div>
+        <div class="topbar-sub">2026년 4월 15일 (수) · 경선 당일 · 투표 진행 중</div>
+      </div>
+      <div class="topbar-right">
+        <div class="time-badge" id="clockBadge">09:00</div>
+        <div class="alarm-btn" id="alarmBtn">🔔 알림 <span class="alarm-cnt" id="alarmCnt">0</span></div>
+      </div>
+    </div>
+
+    <div class="dashboard">
+
+      <!-- 요약 카드 -->
+      <div class="stat-cards">
+        <div class="sc gold">
+          <div class="sc-label">총 투표수</div>
+          <div class="sc-num" id="totalVotes">0</div>
+          <div class="sc-sub"><span class="up" id="totalChange">▲ 0</span> 최근 1시간</div>
+          <div class="sc-icon">🗳️</div>
+        </div>
+        <div class="sc green">
+          <div class="sc-label">달성률</div>
+          <div class="sc-num" id="achieveRate">0%</div>
+          <div class="sc-sub">목표 1,500표 대비</div>
+          <div class="sc-icon">📈</div>
+        </div>
+        <div class="sc blue">
+          <div class="sc-label">보고 완료 동</div>
+          <div class="sc-num" id="reportedDong">0 / 14</div>
+          <div class="sc-sub">현장책임자 제출</div>
+          <div class="sc-icon">📍</div>
+        </div>
+        <div class="sc red">
+          <div class="sc-label">미보고 동</div>
+          <div class="sc-num" id="unreportedDong">14</div>
+          <div class="sc-sub" id="lastReportTime">아직 보고 없음</div>
+          <div class="sc-icon">⚠️</div>
+        </div>
+      </div>
+
+      <!-- 차트 + 동별 현황 -->
+      <div class="chart-row">
+        <div class="chart-card">
+          <div class="card-header">
+            <div class="card-title">동별 투표수 현황</div>
+            <span class="card-badge cb-live">● 실시간</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="mainChart" role="img" aria-label="송파구갑 동별 투표수 막대 차트"></canvas>
+          </div>
+        </div>
+        <div class="chart-card" style="display:flex;flex-direction:column">
+          <div class="card-header">
+            <div class="card-title">시간대별 누적</div>
+            <span class="card-badge cb-live">● 라이브</span>
+          </div>
+          <div class="tl-bars" id="tlBars">
+            <div class="tl-bar-wrap"><div class="tl-bar" style="height:0%;background:rgba(201,168,76,.3)"></div><div class="tl-bar-label">6시</div><div class="tl-bar-val">0</div></div>
+            <div class="tl-bar-wrap"><div class="tl-bar" style="height:0%;background:rgba(201,168,76,.4)"></div><div class="tl-bar-label">7시</div><div class="tl-bar-val">0</div></div>
+            <div class="tl-bar-wrap"><div class="tl-bar" style="height:0%;background:rgba(201,168,76,.5)"></div><div class="tl-bar-label">8시</div><div class="tl-bar-val">0</div></div>
+            <div class="tl-bar-wrap"><div class="tl-bar" style="height:0%;background:rgba(201,168,76,.6)"></div><div class="tl-bar-label">9시</div><div class="tl-bar-val">0</div></div>
+            <div class="tl-bar-wrap"><div class="tl-bar" style="height:0%;background:rgba(201,168,76,.7)"></div><div class="tl-bar-label">10시</div><div class="tl-bar-val">0</div></div>
+            <div class="tl-bar-wrap"><div class="tl-bar" style="height:0%;background:rgba(201,168,76,.85)"></div><div class="tl-bar-label">11시</div><div class="tl-bar-val">0</div></div>
+            <div class="tl-bar-wrap"><div class="tl-bar" style="height:0%;background:var(--gold)"></div><div class="tl-bar-label">12시</div><div class="tl-bar-val">0</div></div>
+          </div>
+
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07)">
+            <div class="card-header" style="margin-bottom:10px">
+              <div class="card-title" style="font-size:13px">현장 입력 현황</div>
+              <span class="card-badge cb-warn" id="inputBadge">대기 중</span>
+            </div>
+            <div class="input-panel" style="background:var(--bg4);border-color:rgba(255,255,255,.04)">
+              <div class="ip-header">
+                <div class="ip-avatar" id="ipAvatar">홍</div>
+                <div class="ip-info">
+                  <h4 id="ipName">홍길동 (잠실동)</h4>
+                  <p id="ipSub">입력 대기 중...</p>
+                </div>
+              </div>
+              <div class="ip-field">
+                <div class="ip-label">담당 동</div>
+                <div class="ip-val" id="ipDong">—</div>
+              </div>
+              <div class="ip-field">
+                <div class="ip-label">투표수 입력</div>
+                <div class="ip-val highlight" id="ipVotes">—</div>
+              </div>
+              <button class="ip-submit" id="ipBtn" disabled>
+                <span id="ipBtnText">입력 대기 중</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 동별 상세 테이블 -->
+      <div class="chart-card">
+        <div class="card-header">
+          <div class="card-title">동별 상세 현황</div>
+          <span class="card-badge cb-warn" id="tableBadge">미보고 14동</span>
+        </div>
+        <table class="dong-table" id="dongTable">
+          <thead>
+            <tr>
+              <th>동 이름</th>
+              <th>현장책임자</th>
+              <th>마지막 보고</th>
+              <th style="text-align:right">투표수</th>
+              <th>달성</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody id="dongTbody"></tbody>
+        </table>
+      </div>
+
+    </div><!-- /dashboard -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- 컨트롤 패널 -->
+<div id="demo-ctrl">
+  <span class="ctrl-label">시연 단계</span>
+  <span class="ctrl-step" id="stepLabel">1 / 7</span>
+  <div class="ctrl-divider"></div>
+  <button class="ctrl-btn ghost" id="btnPrev" onclick="prevStep()" disabled>← 이전</button>
+  <button class="ctrl-btn gold" id="btnNext" onclick="nextStep()">다음 단계 →</button>
+  <div class="ctrl-divider"></div>
+  <button class="ctrl-btn warn" onclick="showCompare()">📊 출구조사 비교</button>
+  <button class="ctrl-btn ghost" onclick="resetDemo()">↺ 처음부터</button>
+</div>
+
+<script>
+// ── 데이터 ──
+const DONGS = [
+  {name:'잠실동',reporter:'홍길동',target:180,color:'#C9A84C'},
+  {name:'신천동',reporter:'김철수',target:120,color:'#2A5AE0'},
+  {name:'방이동',reporter:'이영희',target:100,color:'#10B981'},
+  {name:'오금동',reporter:'박민준',target:90,color:'#E07020'},
+  {name:'거여동',reporter:'최수연',target:110,color:'#C9A84C'},
+  {name:'마천동',reporter:'정태일',target:80,color:'#2A5AE0'},
+  {name:'가락동',reporter:'윤지현',target:130,color:'#10B981'},
+  {name:'문정동',reporter:'조성민',target:100,color:'#E07020'},
+  {name:'장지동',reporter:'한소희',target:90,color:'#C9A84C'},
+  {name:'위례동',reporter:'임도현',target:120,color:'#2A5AE0'},
+  {name:'송파동',reporter:'강나연',target:80,color:'#10B981'},
+  {name:'석촌동',reporter:'서준혁',target:70,color:'#E07020'},
+  {name:'삼전동',reporter:'오미래',target:90,color:'#C9A84C'},
+  {name:'풍납동',reporter:'남기훈',target:90,color:'#2A5AE0'},
+]
+const STEPS_DATA = [
+  // step0: 초기 (0표)
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  // step1: 오전9시 - 2동 보고
+  [47,32,0,0,0,0,0,0,0,0,0,0,0,0],
+  // step2: 오전11시 - 6동 보고
+  [89,67,54,42,0,0,71,0,0,0,0,0,0,0],
+  // step3: 오후1시 - 10동 보고
+  [127,98,78,65,82,51,105,72,63,0,0,0,0,0],
+  // step4: 오후3시 - 전체 보고
+  [163,124,99,81,107,68,138,94,82,108,74,62,85,79],
+  // step5: 오후5시 - 최종 직전
+  [189,141,112,92,121,79,157,108,94,123,84,72,97,90],
+  // step6: 마감 직전 완성
+  [201,153,122,99,131,85,168,116,101,132,90,78,104,97],
+]
+const CLOCKS = ['09:00','09:00','11:00','13:00','15:00','17:00','17:55']
+const TL_DATA = [
+  [0,0,0,0,0,0,0],
+  [0,0,0,79,0,0,0],
+  [0,0,0,79,166,0,0],
+  [0,0,0,79,166,338,536],
+  [0,0,0,79,166,338,536],
+  [0,0,0,79,166,338,815],
+  [0,0,0,79,166,338,1077],
+]
+const NARRATIONS = [
+  '경선 당일 투표가 시작됩니다. 현재 전국 14개 동에 현장책임자가 배치되어 있습니다.',
+  '오전 9시 — 현장책임자 홍길동, 김철수가 첫 보고를 제출했습니다. 잠실동 47표, 신천동 32표.',
+  '오전 11시 — 6개 동에서 보고가 들어왔습니다. 가락동이 71표로 예상보다 빠른 속도입니다.',
+  '오후 1시 — 10개 동 보고 완료. 잠실동이 127표로 달성률 70%를 넘었습니다. 오금동·마천동은 독려가 필요합니다.',
+  '오후 3시 — 전 14개 동 보고 완료! 총 1,364표. 달성률 91%. 이 시점에 공중파는 아직 개표도 시작하지 않았습니다.',
+  '오후 5시 — 최종 집계 1,559표. 목표 초과 달성! 현장 독려의 결과입니다. 마감 1시간 전 이미 당선 가능성을 파악할 수 있습니다.',
+  '오후 5시 55분 — 최종 1,677표. 투표 마감까지 5분. 공중파가 출구조사를 발표하기 훨씬 전, 우리는 이미 이 숫자를 갖고 있었습니다.',
+]
+const TOASTS_BY_STEP = [
+  [],
+  [{type:'ok',title:'🔔 잠실동 보고 도착',body:'홍길동 · 47표 제출 (14:23)'},
+   {type:'ok',title:'🔔 신천동 보고 도착',body:'김철수 · 32표 제출 (09:18)'}],
+  [{type:'ok',title:'🔔 가락동 71표 보고',body:'윤지현 · 예상 대비 109%'},
+   {type:'warn',title:'⚠️ 오금동 미보고',body:'박민준 — 연락 필요'}],
+  [{type:'ok',title:'🔔 잠실동 127표 갱신',body:'달성률 70.6% 돌파!'},
+   {type:'warn',title:'⚠️ 마천동 아직 저조',body:'51표 — 목표 대비 63%'}],
+  [{type:'ok',title:'✅ 전 동 보고 완료!',body:'14/14동 집계 완료 · 총 1,364표'},
+   {type:'ok',title:'📺 방송사 API 수신 중',body:'CG 시스템 실시간 연동 정상'}],
+  [{type:'ok',title:'🎯 목표 초과 달성!',body:'1,559표 / 목표 1,500표 (103.9%)'}],
+  [{type:'ok',title:'🏆 최종 집계 완료',body:'1,677표 · 달성률 111.8%'},
+   {type:'ok',title:'📊 선관위 발표 5시간 전',body:'CampVote가 먼저 파악했습니다'}],
+]
+
+let currentStep = 0
+let chart = null
+
+// ── 차트 초기화 ──
+function initChart(){
+  const ctx = document.getElementById('mainChart').getContext('2d')
+  chart = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: DONGS.map(d=>d.name),
+      datasets:[{
+        label:'투표수',
+        data: Array(14).fill(0),
+        backgroundColor: DONGS.map(d=>d.color+'99'),
+        borderColor: DONGS.map(d=>d.color),
+        borderWidth:1,
+        borderRadius:3,
+      },{
+        label:'목표',
+        data: DONGS.map(d=>d.target),
+        backgroundColor:'rgba(255,255,255,.04)',
+        borderColor:'rgba(255,255,255,.12)',
+        borderWidth:1,
+        borderRadius:3,
+        borderDash:[4,4],
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          title:([t])=>t.label,
+          label:t=>t.datasetIndex===0?`투표수: ${t.raw}표`:`목표: ${t.raw}표`
+        }}
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#64748B',font:{size:10}}},
+        y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#64748B',font:{size:10}},beginAtZero:true,max:220}
+      },
+      animation:{duration:800}
+    }
+  })
+}
+
+// ── 동 테이블 초기화 ──
+function initTable(){
+  const tbody = document.getElementById('dongTbody')
+  tbody.innerHTML = DONGS.map((d,i)=>`
+    <tr id="tr${i}">
+      <td><div class="dong-name">${d.name}</div></td>
+      <td><div class="dong-reporter">${d.reporter}</div></td>
+      <td class="dong-time" id="dt${i}">—</td>
+      <td class="dong-votes" id="dv${i}">—</td>
+      <td class="dong-bar-cell">
+        <div class="dong-bar-track"><div class="dong-bar-fill" id="db${i}" style="width:0%;background:${d.color}"></div></div>
+      </td>
+      <td><span class="status-pill sp-none" id="ds${i}">미보고</span></td>
+    </tr>`).join('')
+}
+
+// ── 단계 업데이트 ──
+function updateStep(step){
+  const votes = STEPS_DATA[step]
+  const tl = TL_DATA[step]
+  const total = votes.reduce((a,b)=>a+b,0)
+  const reported = votes.filter(v=>v>0).length
+  const unreported = 14 - reported
+  const rate = Math.round(total/1500*100)
+
+  // 요약 카드
+  animateNum('totalVotes', total)
+  document.getElementById('achieveRate').textContent = rate+'%'
+  document.getElementById('reportedDong').textContent = `${reported} / 14`
+  document.getElementById('unreportedDong').textContent = unreported
+  document.getElementById('lastReportTime').textContent = reported>0?`마지막: ${CLOCKS[step]}`:'아직 보고 없음'
+  if(step>0){
+    const prev = STEPS_DATA[step-1].reduce((a,b)=>a+b,0)
+    document.getElementById('totalChange').textContent = `▲ ${total-prev}`
+  }
+  document.getElementById('alertBadge').textContent = unreported
+  document.getElementById('alarmCnt').textContent = unreported
+  document.getElementById('clockBadge').textContent = CLOCKS[step]
+  document.getElementById('tableBadge').textContent = unreported>0?`미보고 ${unreported}동`:'전 동 보고 완료 ✅'
+  document.getElementById('tableBadge').className = 'card-badge ' + (unreported>0?'cb-warn':'cb-live')
+
+  // 차트 업데이트
+  if(chart){ chart.data.datasets[0].data = votes; chart.update() }
+
+  // 동 테이블 업데이트
+  const TIMES=['—','09:23','09:18','11:05','11:12','—','—','11:34','—','—','—','—','—','—']
+  const TIMES2=['—','09:23','09:18','11:05','11:12','11:41','11:38','11:34','—','—','—','—','—','—']
+  const TIMES3=['09:23','09:18','11:05','11:12','11:41','11:38','11:34','12:10','12:28','—','—','—','—','—']
+  const TIMES4=['09:23','09:18','11:05','11:12','11:41','11:38','11:34','12:10','12:28','13:15','13:22','13:31','13:45','13:52']
+  const TIMESMAP=[Array(14).fill('—'),TIMES,TIMES2,TIMES3,TIMES4,TIMES4,TIMES4]
+  votes.forEach((v,i)=>{
+    const pct = Math.round(v/DONGS[i].target*100)
+    document.getElementById('dv'+i).textContent = v>0?v+'표':'—'
+    document.getElementById('db'+i).style.width = v>0?Math.min(pct,100)+'%':'0%'
+    document.getElementById('dt'+i).textContent = TIMESMAP[step][i]
+    const sp = document.getElementById('ds'+i)
+    if(v===0){sp.textContent='미보고';sp.className='status-pill sp-none'}
+    else if(pct>=80){sp.textContent='양호';sp.className='status-pill sp-ok'}
+    else{sp.textContent='저조';sp.className='status-pill sp-warn'}
+  })
+
+  // 타임라인 바
+  const maxTl = Math.max(...tl, 100)
+  const tlWraps = document.getElementById('tlBars').querySelectorAll('.tl-bar-wrap')
+  tl.forEach((val,i)=>{
+    const bar = tlWraps[i].querySelector('.tl-bar')
+    const valEl = tlWraps[i].querySelector('.tl-bar-val')
+    const pct = Math.round(val/maxTl*100)
+    bar.style.height = val>0?pct+'%':'4%'
+    valEl.textContent = val>0?val:''
+  })
+
+  // 입력 패널 시뮬
+  if(step>0 && step<=STEPS_DATA.length-1){
+    const newDongs = votes.map((v,i)=>v>0&&STEPS_DATA[step-1][i]===0?i:-1).filter(i=>i>=0)
+    if(newDongs.length>0){
+      const idx = newDongs[0]
+      const d = DONGS[idx]
+      document.getElementById('ipAvatar').textContent = d.reporter[0]
+      document.getElementById('ipName').textContent = `${d.reporter} (${d.name})`
+      document.getElementById('ipSub').textContent = `${CLOCKS[step]} 제출`
+      document.getElementById('ipDong').textContent = d.name
+      document.getElementById('ipVotes').textContent = votes[idx]+'표'
+      document.getElementById('ipBtn').disabled = false
+      document.getElementById('ipBtnText').textContent = '✓ 제출 완료'
+      document.getElementById('inputBadge').textContent = '제출됨'
+      document.getElementById('inputBadge').className = 'card-badge cb-live'
+    }
+  }
+
+  // 나레이션
+  showNarration(NARRATIONS[step])
+
+  // 스텝 표시
+  document.getElementById('stepLabel').textContent = `${step+1} / 7`
+  for(let i=0;i<7;i++){
+    const dot = document.getElementById('dot'+i)
+    dot.className = 'step-dot' + (i<step?' done':i===step?' active':'')
+  }
+
+  // 버튼
+  document.getElementById('btnPrev').disabled = step===0
+  document.getElementById('btnNext').disabled = step===6
+  document.getElementById('btnNext').textContent = step===6?'시연 완료 ✓':'다음 단계 →'
+}
+
+function animateNum(id, target){
+  const el = document.getElementById(id)
+  const current = parseInt(el.textContent.replace(/,/g,''))||0
+  if(current===target)return
+  el.classList.add('flash')
+  const steps=20, inc=(target-current)/steps
+  let i=0
+  const iv=setInterval(()=>{
+    i++
+    el.textContent = Math.round(current+inc*i).toLocaleString()
+    if(i>=steps){el.textContent=target.toLocaleString();clearInterval(iv)}
+  },30)
+  setTimeout(()=>el.classList.remove('flash'),500)
+}
+
+// ── 토스트 ──
+function showToast(type,title,body){
+  const tc = document.getElementById('toast-container')
+  const t = document.createElement('div')
+  t.className = 'toast'+(type==='warn'?' warning':'')
+  t.innerHTML = `<div class="toast-title">${title}</div><div class="toast-body">${body}</div>`
+  tc.appendChild(t)
+  setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),400)},3500)
+}
+
+function showNarration(text){
+  const n = document.getElementById('narration')
+  n.classList.add('hide')
+  setTimeout(()=>{n.textContent=text;n.classList.remove('hide')},400)
+}
+
+// ── 단계 제어 ──
+function nextStep(){
+  if(currentStep>=6)return
+  currentStep++
+  updateStep(currentStep)
+  const toasts = TOASTS_BY_STEP[currentStep]
+  toasts.forEach((t,i)=>setTimeout(()=>showToast(t.type,t.title,t.body),i*600))
+}
+function prevStep(){
+  if(currentStep<=0)return
+  currentStep--
+  updateStep(currentStep)
+}
+function resetDemo(){
+  currentStep=0
+  updateStep(0)
+  document.getElementById('toast-container').innerHTML=''
+}
+function showCompare(){ document.getElementById('compare-overlay').classList.add('show') }
+function closeCompare(){ document.getElementById('compare-overlay').classList.remove('show') }
+function startDemo(){
+  document.getElementById('intro').classList.add('hide')
+  setTimeout(()=>{document.getElementById('intro').style.display='none'},900)
+  initChart()
+  initTable()
+  updateStep(0)
+  setTimeout(()=>showNarration(NARRATIONS[0]),1000)
+}
+</script>
+</body>
+</html>

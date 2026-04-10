@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampVote — 실시간 경선 투표 집계 시스템</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:    #C9A84C;
+  --gold2:   #F0D080;
+  --gold3:   #7A5C1E;
+  --dark:    #080A0F;
+  --dark2:   #0D1018;
+  --dark3:   #141820;
+  --dark4:   #1C2230;
+  --accent:  #1A6EFF;
+  --accent2: #0A3A8A;
+  --red:     #E03030;
+  --text:    #E8EAF0;
+  --muted:   #7A8090;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--dark);
+  color: var(--text);
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* ── 파티클 캔버스 ── */
+#particles {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+  opacity: .4;
+}
+
+/* ── 스크롤 진행 바 ── */
+#progress-bar {
+  position: fixed; top: 0; left: 0;
+  height: 3px; width: 0%;
+  background: linear-gradient(90deg, var(--gold3), var(--gold), var(--gold2));
+  z-index: 1000;
+  transition: width .1s;
+}
+
+/* ── 네비 ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 500;
+  padding: 20px 60px;
+  display: flex; justify-content: space-between; align-items: center;
+  background: linear-gradient(180deg, rgba(8,10,15,.95) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(201,168,76,.15);
+}
+.nav-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; letter-spacing: .2em;
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(201,168,76,.5);
+}
+.nav-links { display: flex; gap: 36px; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; letter-spacing: .12em;
+  color: var(--muted); text-decoration: none; text-transform: uppercase;
+  transition: color .3s;
+}
+.nav-links a:hover { color: var(--gold); }
+
+/* ── 히어로 ── */
+#hero {
+  position: relative; min-height: 100vh;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  text-align: center; overflow: hidden;
+  padding: 120px 40px 80px;
+}
+
+.hero-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(26,110,255,.08) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(201,168,76,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 80% 20%, rgba(26,110,255,.05) 0%, transparent 60%);
+}
+
+.hero-grid {
+  position: absolute; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(201,168,76,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,168,76,.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 0%, transparent 100%);
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(201,168,76,.1); border: 1px solid rgba(201,168,76,.3);
+  border-radius: 30px; padding: 8px 20px;
+  font-size: 11px; font-weight: 700; letter-spacing: .15em;
+  color: var(--gold); text-transform: uppercase;
+  margin-bottom: 36px;
+  animation: fadeSlideDown .8s ease both;
+}
+.hero-badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gold); animation: pulse-dot 1.5s infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:.4; transform:scale(.7); }
+}
+
+.hero-eyebrow {
+  font-size: 13px; font-weight: 400; letter-spacing: .3em;
+  color: var(--muted); text-transform: uppercase;
+  margin-bottom: 20px;
+  animation: fadeSlideDown .8s .1s ease both;
+}
+
+.hero-title {
+  font-family: 'Nanum Myeongjo', serif;
+  font-size: clamp(52px, 8vw, 110px);
+  font-weight: 800; line-height: .95;
+  letter-spacing: -.02em;
+  margin-bottom: 16px;
+  animation: fadeSlideDown .8s .2s ease both;
+}
+.hero-title .line1 { display: block; color: var(--text); }
+.hero-title .line2 {
+  display: block;
+  background: linear-gradient(135deg, var(--gold3) 0%, var(--gold) 40%, var(--gold2) 70%, var(--gold) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: clamp(15px, 2vw, 20px); font-weight: 300;
+  color: var(--muted); line-height: 1.7; max-width: 600px;
+  margin: 24px auto 48px;
+  animation: fadeSlideDown .8s .3s ease both;
+}
+
+.hero-cta {
+  display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+  animation: fadeSlideDown .8s .4s ease both;
+}
+.btn-gold {
+  padding: 16px 40px; border-radius: 4px;
+  font-size: 13px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; text-decoration: none; cursor: pointer;
+  background: linear-gradient(135deg, var(--gold3), var(--gold), var(--gold2));
+  color: var(--dark); border: none;
+  position: relative; overflow: hidden;
+  transition: transform .2s, box-shadow .2s;
+}
+.btn-gold::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,.2) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform .5s;
+}
+.btn-gold:hover { transform: translateY(-2px); box-shadow: 0 20px 60px rgba(201,168,76,.4); }
+.btn-gold:hover::after { transform: translateX(100%); }
+
+.btn-outline {
+  padding: 16px 40px; border-radius: 4px;
+  font-size: 13px; font-weight: 500; letter-spacing: .12em;
+  text-transform: uppercase; text-decoration: none; cursor: pointer;
+  background: transparent;
+  color: var(--text); border: 1px solid rgba(255,255,255,.2);
+  transition: all .3s;
+}
+.btn-outline:hover {
+  border-color: var(--gold); color: var(--gold);
+  background: rgba(201,168,76,.05);
+}
+
+/* 스크롤 인디케이터 */
+.scroll-hint {
+  position: absolute; bottom: 40px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  font-size: 10px; letter-spacing: .2em; color: var(--muted);
+  text-transform: uppercase; animation: fadeSlideDown 1s .8s ease both;
+}
+.scroll-line {
+  width: 1px; height: 50px;
+  background: linear-gradient(180deg, var(--gold), transparent);
+  animation: scrollLine 2s ease infinite;
+}
+@keyframes scrollLine {
+  0% { transform: scaleY(0); transform-origin: top; }
+  50% { transform: scaleY(1); transform-origin: top; }
+  50.1% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* ── 섹션 공통 ── */
+section { position: relative; z-index: 1; }
+
+.section-wrap {
+  max-width: 1200px; margin: 0 auto; padding: 0 60px;
+}
+
+.section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .25em;
+  color: var(--gold); text-transform: uppercase;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 16px;
+}
+.section-label::before {
+  content: ''; width: 32px; height: 1px;
+  background: var(--gold);
+}
+
+.section-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.1; font-weight: 400;
+  margin-bottom: 20px;
+}
+.section-title em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+.section-desc {
+  font-size: 17px; font-weight: 300; color: var(--muted);
+  line-height: 1.8; max-width: 560px;
+}
+
+/* ── 문제 제기 섹션 ── */
+#problem {
+  padding: 160px 0;
+  background: linear-gradient(180deg, var(--dark) 0%, var(--dark2) 100%);
+}
+
+.problem-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 80px; align-items: center; margin-top: 80px;
+}
+
+.problem-cards {
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+.problem-card {
+  background: var(--dark3);
+  border: 1px solid rgba(255,255,255,.06);
+  border-left: 3px solid var(--red);
+  border-radius: 2px; padding: 24px 28px;
+  display: flex; gap: 16px; align-items: flex-start;
+  transition: transform .3s, border-color .3s;
+  opacity: 0; transform: translateX(-30px);
+  transition: opacity .6s, transform .6s;
+}
+.problem-card.visible { opacity: 1; transform: translateX(0); }
+.problem-card:hover { transform: translateX(6px); }
+
+.problem-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px; color: rgba(224,48,48,.3);
+  line-height: 1; flex-shrink: 0;
+}
+.problem-text h4 {
+  font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--text);
+}
+.problem-text p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+.problem-visual {
+  position: relative;
+  opacity: 0; transform: translateX(30px);
+  transition: opacity .8s .3s, transform .8s .3s;
+}
+.problem-visual.visible { opacity: 1; transform: translateX(0); }
+
+.timeline-box {
+  background: var(--dark3);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 8px; padding: 32px;
+}
+.timeline-title {
+  font-size: 11px; letter-spacing: .2em; color: var(--muted);
+  text-transform: uppercase; margin-bottom: 24px;
+}
+.timeline-item {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 16px; position: relative;
+}
+.timeline-item::before {
+  content: ''; position: absolute; left: 18px; top: 36px;
+  width: 1px; height: calc(100% + 8px);
+  background: rgba(255,255,255,.08);
+}
+.timeline-item:last-child::before { display: none; }
+.tl-dot {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,.1);
+  background: var(--dark4);
+}
+.tl-dot.active { border-color: var(--gold); background: rgba(201,168,76,.1); }
+.tl-dot.danger { border-color: var(--red); background: rgba(224,48,48,.1); }
+.tl-info h5 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.tl-info p { font-size: 11px; color: var(--muted); }
+.tl-time {
+  margin-left: auto; font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px; color: var(--muted);
+}
+.tl-time.red { color: var(--red); }
+.tl-time.gold { color: var(--gold); }
+
+/* ── 솔루션 섹션 ── */
+#solution {
+  padding: 160px 0;
+  background: var(--dark2);
+  overflow: hidden;
+}
+
+.solution-header { text-align: center; margin-bottom: 100px; }
+.solution-header .section-label { justify-content: center; }
+.solution-header .section-label::before { display: none; }
+
+.features-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 2px;
+}
+
+.feature-card {
+  background: var(--dark3);
+  padding: 48px 40px;
+  position: relative; overflow: hidden;
+  opacity: 0; transform: translateY(40px);
+  transition: opacity .6s, transform .6s;
+}
+.feature-card.visible { opacity: 1; transform: translateY(0); }
+.feature-card:nth-child(2) { transition-delay: .1s; }
+.feature-card:nth-child(3) { transition-delay: .2s; }
+.feature-card:nth-child(4) { transition-delay: .3s; }
+.feature-card:nth-child(5) { transition-delay: .4s; }
+.feature-card:nth-child(6) { transition-delay: .5s; }
+
+.feature-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0; transition: opacity .4s;
+}
+.feature-card:hover::before { opacity: 1; }
+
+.feature-card::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(201,168,76,.05) 0%, transparent 70%);
+  opacity: 0; transition: opacity .4s;
+}
+.feature-card:hover::after { opacity: 1; }
+
+.feature-icon {
+  font-size: 36px; margin-bottom: 20px; display: block;
+  filter: grayscale(1); transition: filter .3s;
+}
+.feature-card:hover .feature-icon { filter: grayscale(0); }
+
+.feature-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 72px; color: rgba(201,168,76,.08);
+  position: absolute; top: 20px; right: 24px;
+  line-height: 1;
+}
+
+.feature-card h3 {
+  font-size: 18px; font-weight: 700; margin-bottom: 12px;
+  color: var(--text);
+}
+.feature-card p {
+  font-size: 13px; color: var(--muted); line-height: 1.7;
+}
+
+/* ── 실시간 데모 섹션 ── */
+#demo {
+  padding: 160px 0;
+  background: var(--dark);
+}
+
+.demo-wrap {
+  display: grid; grid-template-columns: 1fr 1.2fr;
+  gap: 80px; align-items: center;
+}
+
+.demo-screen {
+  background: var(--dark3);
+  border: 1px solid rgba(201,168,76,.2);
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 40px 120px rgba(0,0,0,.6), 0 0 60px rgba(201,168,76,.08);
+  opacity: 0; transform: translateY(40px);
+  transition: opacity .8s, transform .8s;
+}
+.demo-screen.visible { opacity: 1; transform: translateY(0); }
+
+.demo-header {
+  background: var(--dark4);
+  padding: 14px 20px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.demo-dots { display: flex; gap: 6px; }
+.demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+.demo-dot:nth-child(1) { background: #FF5F57; }
+.demo-dot:nth-child(2) { background: #FFBD2E; }
+.demo-dot:nth-child(3) { background: #28CA41; }
+.demo-url {
+  flex: 1; background: var(--dark3);
+  border-radius: 4px; padding: 5px 12px;
+  font-size: 11px; color: var(--muted); letter-spacing: .05em;
+}
+.live-pill {
+  background: rgba(40,202,65,.15); border: 1px solid rgba(40,202,65,.3);
+  border-radius: 12px; padding: 3px 10px;
+  font-size: 10px; color: #28CA41; font-weight: 700; letter-spacing: .08em;
+  display: flex; align-items: center; gap: 5px;
+}
+.live-blink {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #28CA41; animation: pulse-dot 1s infinite;
+}
+
+.demo-body { padding: 24px; }
+
+.demo-stats {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 10px;
+  margin-bottom: 20px;
+}
+.demo-stat {
+  background: var(--dark4); border-radius: 8px; padding: 14px;
+  text-align: center;
+}
+.demo-stat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; color: var(--gold); display: block;
+  transition: transform .3s;
+}
+.demo-stat-num.counting { animation: countUp .3s ease; }
+@keyframes countUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.demo-stat-label { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+.demo-bars { display: flex; flex-direction: column; gap: 10px; }
+.demo-bar-row { display: flex; align-items: center; gap: 10px; }
+.demo-bar-name { font-size: 11px; color: var(--muted); width: 52px; flex-shrink: 0; }
+.demo-bar-track {
+  flex: 1; height: 8px; background: var(--dark4);
+  border-radius: 4px; overflow: hidden;
+}
+.demo-bar-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  width: 0%; transition: width 1.2s cubic-bezier(.25,.46,.45,.94);
+}
+.demo-bar-fill.gold {
+  background: linear-gradient(90deg, var(--gold3), var(--gold));
+}
+.demo-bar-fill.red {
+  background: linear-gradient(90deg, #8B0000, var(--red));
+}
+.demo-bar-count { font-size: 11px; color: var(--text); width: 28px; text-align: right; }
+
+/* 새 보고 토스트 */
+.demo-toast {
+  background: rgba(40,202,65,.1); border: 1px solid rgba(40,202,65,.25);
+  border-radius: 6px; padding: 10px 14px; margin-top: 16px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px; color: #28CA41;
+  animation: toastIn .4s ease;
+}
+@keyframes toastIn {
+  from { opacity:0; transform: translateY(8px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+/* ── 흐름 섹션 ── */
+#flow {
+  padding: 160px 0;
+  background: var(--dark2);
+}
+
+.flow-steps {
+  display: flex; gap: 0; margin-top: 80px;
+  position: relative;
+}
+.flow-steps::before {
+  content: ''; position: absolute;
+  top: 36px; left: 36px; right: 36px; height: 1px;
+  background: linear-gradient(90deg,
+    transparent, var(--gold), var(--gold), var(--gold), transparent);
+  opacity: .25;
+}
+
+.flow-step {
+  flex: 1; text-align: center; padding: 0 24px;
+  opacity: 0; transform: translateY(30px);
+  transition: opacity .5s, transform .5s;
+}
+.flow-step.visible { opacity: 1; transform: translateY(0); }
+.flow-step:nth-child(2) { transition-delay: .1s; }
+.flow-step:nth-child(3) { transition-delay: .2s; }
+.flow-step:nth-child(4) { transition-delay: .3s; }
+.flow-step:nth-child(5) { transition-delay: .4s; }
+
+.flow-icon {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--dark3); border: 2px solid rgba(201,168,76,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; margin: 0 auto 20px;
+  position: relative; z-index: 1;
+  transition: border-color .3s, box-shadow .3s;
+}
+.flow-step:hover .flow-icon {
+  border-color: var(--gold);
+  box-shadow: 0 0 30px rgba(201,168,76,.25);
+}
+.flow-step h4 {
+  font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--text);
+}
+.flow-step p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+/* ── 수치 섹션 ── */
+#numbers {
+  padding: 120px 0;
+  background: linear-gradient(180deg, var(--dark2) 0%, var(--dark) 100%);
+  border-top: 1px solid rgba(201,168,76,.08);
+  border-bottom: 1px solid rgba(201,168,76,.08);
+}
+
+.numbers-grid {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 1px;
+  background: rgba(255,255,255,.04);
+}
+.number-card {
+  background: var(--dark);
+  padding: 60px 40px; text-align: center;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity .6s, transform .6s;
+}
+.number-card.visible { opacity: 1; transform: translateY(0); }
+.number-card:nth-child(2) { transition-delay: .1s; }
+.number-card:nth-child(3) { transition-delay: .2s; }
+.number-card:nth-child(4) { transition-delay: .3s; }
+.number-big {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 72px; line-height: 1;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block; margin-bottom: 8px;
+}
+.number-label { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+/* ── 방송 가치 섹션 ── */
+#broadcast {
+  padding: 160px 0;
+  background: var(--dark);
+}
+
+.broadcast-grid {
+  display: grid; grid-template-columns: 1.2fr 1fr;
+  gap: 80px; align-items: center; margin-top: 80px;
+}
+
+.broadcast-cards {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+.bc-card {
+  background: var(--dark3);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 8px; padding: 28px 24px;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity .5s, transform .5s;
+}
+.bc-card.visible { opacity: 1; transform: translateY(0); }
+.bc-card:nth-child(2) { transition-delay: .1s; }
+.bc-card:nth-child(3) { transition-delay: .2s; }
+.bc-card:nth-child(4) { transition-delay: .3s; }
+.bc-card:hover {
+  border-color: rgba(201,168,76,.3);
+  background: rgba(201,168,76,.04);
+}
+.bc-card-icon { font-size: 28px; margin-bottom: 14px; display: block; }
+.bc-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+.bc-card p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+.broadcast-screen {
+  background: var(--dark3);
+  border: 1px solid rgba(201,168,76,.15);
+  border-radius: 12px; overflow: hidden;
+  aspect-ratio: 16/9; position: relative;
+  box-shadow: 0 30px 80px rgba(0,0,0,.5);
+  opacity: 0; transform: translateX(40px);
+  transition: opacity .8s .2s, transform .8s .2s;
+}
+.broadcast-screen.visible { opacity: 1; transform: translateX(0); }
+
+.tv-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg,
+    rgba(8,10,15,.95) 0%,
+    rgba(13,16,24,.9) 100%);
+  display: flex; flex-direction: column;
+  padding: 24px;
+}
+.tv-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
+}
+.tv-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; color: var(--gold); letter-spacing: .15em;
+}
+.tv-live {
+  background: var(--red); color: #fff;
+  padding: 4px 12px; font-size: 11px; font-weight: 900;
+  letter-spacing: .1em;
+}
+.tv-bars {
+  display: flex; gap: 6px; align-items: flex-end;
+  height: 80px; margin-bottom: 16px;
+}
+.tv-bar {
+  flex: 1; border-radius: 2px 2px 0 0;
+  animation: tvBarAnim 2s ease infinite alternate;
+}
+@keyframes tvBarAnim {
+  from { opacity: .7; }
+  to   { opacity: 1; }
+}
+.tv-ticker {
+  background: var(--gold);
+  padding: 8px 16px; margin: 0 -24px -24px;
+  font-size: 11px; font-weight: 700; color: var(--dark);
+  letter-spacing: .05em;
+  display: flex; align-items: center; gap: 12px; overflow: hidden;
+}
+.tv-ticker-text {
+  white-space: nowrap;
+  animation: tickerScroll 12s linear infinite;
+}
+@keyframes tickerScroll {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(-100%); }
+}
+
+/* ── 가격/플랜 섹션 ── */
+#plans {
+  padding: 160px 0;
+  background: var(--dark2);
+}
+.plans-header { text-align: center; margin-bottom: 80px; }
+.plans-header .section-label { justify-content: center; }
+.plans-header .section-label::before { display: none; }
+
+.plans-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 2px;
+}
+.plan-card {
+  background: var(--dark3); padding: 48px 36px;
+  position: relative; overflow: hidden;
+  opacity: 0; transform: translateY(30px);
+  transition: opacity .5s, transform .5s;
+}
+.plan-card.visible { opacity: 1; transform: translateY(0); }
+.plan-card:nth-child(2) {
+  background: var(--dark4);
+  border: 1px solid rgba(201,168,76,.3);
+  transition-delay: .1s;
+}
+.plan-card:nth-child(3) { transition-delay: .2s; }
+
+.plan-badge-featured {
+  position: absolute; top: 20px; right: 20px;
+  background: linear-gradient(135deg, var(--gold3), var(--gold));
+  color: var(--dark); font-size: 10px; font-weight: 900;
+  padding: 4px 10px; letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.plan-name {
+  font-size: 12px; font-weight: 700; letter-spacing: .2em;
+  color: var(--muted); text-transform: uppercase; margin-bottom: 16px;
+}
+.plan-price {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 56px; color: var(--text); line-height: 1;
+  margin-bottom: 4px;
+}
+.plan-price span { font-size: 20px; color: var(--muted); }
+.plan-period { font-size: 12px; color: var(--muted); margin-bottom: 32px; }
+.plan-features { list-style: none; margin-bottom: 36px; }
+.plan-features li {
+  font-size: 13px; color: var(--muted); padding: 9px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  display: flex; align-items: center; gap: 10px;
+}
+.plan-features li::before {
+  content: ''; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--gold); flex-shrink: 0;
+}
+.plan-cta {
+  display: block; width: 100%; padding: 14px;
+  font-size: 12px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; text-align: center;
+  border: 1px solid rgba(255,255,255,.15); border-radius: 2px;
+  color: var(--text); background: transparent; cursor: pointer;
+  transition: all .3s; text-decoration: none;
+}
+.plan-cta.gold {
+  background: linear-gradient(135deg, var(--gold3), var(--gold));
+  border-color: transparent; color: var(--dark);
+}
+.plan-cta:hover { transform: translateY(-2px); }
+
+/* ── CTA 섹션 ── */
+#cta {
+  padding: 160px 0;
+  text-align: center;
+  background: var(--dark);
+  position: relative; overflow: hidden;
+}
+.cta-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 50% 50%,
+    rgba(201,168,76,.06) 0%, transparent 70%);
+}
+.cta-title {
+  font-family: 'Nanum Myeongjo', serif;
+  font-size: clamp(40px, 6vw, 80px);
+  font-weight: 800; line-height: 1.1;
+  margin-bottom: 24px;
+}
+.cta-title .gold {
+  background: linear-gradient(135deg, var(--gold3), var(--gold), var(--gold2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.cta-sub {
+  font-size: 18px; color: var(--muted); margin-bottom: 48px;
+  font-weight: 300;
+}
+
+/* ── 푸터 ── */
+footer {
+  padding: 40px 60px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  display: flex; justify-content: space-between; align-items: center;
+  position: relative; z-index: 1;
+}
+.footer-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px; color: var(--gold); letter-spacing: .2em;
+}
+.footer-text { font-size: 11px; color: var(--muted); }
+
+/* ── 공통 애니메이션 ── */
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── 반응형 ── */
+@media (max-width: 900px) {
+  nav { padding: 16px 24px; }
+  .nav-links { display: none; }
+  .section-wrap { padding: 0 24px; }
+  .problem-grid, .demo-wrap, .broadcast-grid { grid-template-columns: 1fr; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .numbers-grid { grid-template-columns: 1fr 1fr; }
+  .plans-grid { grid-template-columns: 1fr; gap: 8px; }
+  .flow-steps { flex-wrap: wrap; }
+  .flow-step { flex: 0 0 50%; }
+  .broadcast-cards { grid-template-columns: 1fr; }
+  footer { flex-direction: column; gap: 12px; text-align: center; }
+}
+@media print{
+  nav{display:none!important}
+  canvas,#particles,#progress-bar{display:none!important}
+  *{animation:none!important;transition:none!important}
+  body{overflow:visible!important;cursor:default!important}
+  footer{position:relative!important}
+}
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div id="progress-bar"></div>
+
+<!-- 네비 -->
+<nav>
+  <div class="nav-logo">CampVote</div>
+  <div class="nav-links">
+    <a href="#problem">문제</a>
+    <a href="#solution">솔루션</a>
+    <a href="#demo">데모</a>
+    <a href="#broadcast">방송 활용</a>
+    <a href="#plans">도입 문의</a>
+  </div>
+</nav>
+
+<!-- 히어로 -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    실시간 경선 집계 플랫폼
+  </div>
+  <div class="hero-eyebrow">선관위보다 빠르게 — 현장에서 바로</div>
+  <h1 class="hero-title">
+    <span class="line1">경선 당일,</span>
+    <span class="line2">모든 것을 실시간으로</span>
+  </h1>
+  <p class="hero-sub">
+    전국 캠프 현장책임자가 스마트폰으로 투표수를 입력하면<br>
+    본부 대시보드와 방송 화면에 즉시 반영됩니다
+  </p>
+  <div class="hero-cta">
+    <a href="#demo" class="btn-gold">라이브 데모 보기</a>
+    <a href="#broadcast" class="btn-outline">방송 도입 안내</a>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- 문제 제기 -->
+<section id="problem">
+  <div class="section-wrap">
+    <div class="problem-grid">
+      <div>
+        <div class="section-label">Problem</div>
+        <h2 class="section-title">경선 당일,<br>캠프는 <em>아무것도</em><br>모릅니다</h2>
+        <p class="section-desc">
+          선관위는 투표 종료 후에야 집계를 시작합니다.
+          투표가 진행되는 수 시간 동안 캠프는 자체 데이터가 전혀 없습니다.
+        </p>
+        <div class="problem-cards" style="margin-top:40px">
+          <div class="problem-card">
+            <div class="problem-num">01</div>
+            <div class="problem-text">
+              <h4>실시간 현황 파악 불가</h4>
+              <p>투표 진행 중 어느 동네 투표율이 낮은지 알 방법이 없습니다. 저조 지역 독려가 불가능합니다.</p>
+            </div>
+          </div>
+          <div class="problem-card">
+            <div class="problem-num">02</div>
+            <div class="problem-text">
+              <h4>전화 취합의 한계</h4>
+              <p>30명 현장책임자에게 수동으로 전화 돌리면 오류·누락·지연이 필연적으로 발생합니다.</p>
+            </div>
+          </div>
+          <div class="problem-card">
+            <div class="problem-num">03</div>
+            <div class="problem-text">
+              <h4>방송사의 데이터 공백</h4>
+              <p>개표 전 수 시간 동안 방송사는 현장 분위기 외에 보여줄 수치 데이터가 없습니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="problem-visual">
+        <div class="timeline-box">
+          <div class="timeline-title">📺 기존 정보 획득 타임라인</div>
+          <div class="timeline-item">
+            <div class="tl-dot active">🗳️</div>
+            <div class="tl-info">
+              <h5>투표 시작</h5>
+              <p>캠프·방송 — 데이터 제로</p>
+            </div>
+            <div class="tl-time gold">09:00</div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot danger">❌</div>
+            <div class="tl-info">
+              <h5>투표 진행 중</h5>
+              <p>수동 전화 취합 — 오류·지연</p>
+            </div>
+            <div class="tl-time">~18:00</div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot danger">⏳</div>
+            <div class="tl-info">
+              <h5>투표 종료 후 개표 대기</h5>
+              <p>방송사 — 보여줄 것 없음</p>
+            </div>
+            <div class="tl-time red">+2h</div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot">📊</div>
+            <div class="tl-info">
+              <h5>선관위 공식 발표</h5>
+              <p>비로소 첫 번째 데이터 확인</p>
+            </div>
+            <div class="tl-time red">늦음</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 솔루션 -->
+<section id="solution">
+  <div class="section-wrap">
+    <div class="solution-header">
+      <div class="section-label">Solution</div>
+      <h2 class="section-title">CampVote가<br><em>바꾸는</em> 것</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <div class="feature-num">01</div>
+        <h3>1초 실시간 반영</h3>
+        <p>현장책임자가 입력하는 순간 전국 대시보드에 즉시 반영. WebSocket 기반 지연 없는 실시간 스트리밍.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📍</span>
+        <div class="feature-num">02</div>
+        <h3>동 단위 정밀 집계</h3>
+        <p>읍·면·동 최소 단위까지 현황 파악. 어느 동네가 저조한지 즉시 파악하고 현장 독려 가능.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔗</span>
+        <div class="feature-num">03</div>
+        <h3>URL 하나로 전국 운영</h3>
+        <p>캠프별 고유 URL 생성. 앱 설치 없이 링크 하나로 모든 현장책임자가 즉시 접속·입력.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📺</span>
+        <div class="feature-num">04</div>
+        <h3>방송용 API 제공</h3>
+        <p>실시간 집계 데이터를 방송 CG 시스템에 직접 연동. 선관위보다 수 시간 빠른 데이터 송출.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🗺️</span>
+        <div class="feature-num">05</div>
+        <h3>전국 254개 선거구</h3>
+        <p>제22대 총선 기준 전국 선거구 DB 내장. 서울·광역시는 구 단위, 지방은 시군 단위 자동 분류.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔒</span>
+        <div class="feature-num">06</div>
+        <h3>캠프별 완전 격리</h3>
+        <p>멀티테넌트 구조로 캠프 간 데이터 완전 차단. 민감한 경선 데이터 보안 철저 보장.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 실시간 데모 -->
+<section id="demo">
+  <div class="section-wrap">
+    <div class="demo-wrap">
+      <div>
+        <div class="section-label">Live Demo</div>
+        <h2 class="section-title">지금 이 순간도<br><em>집계 중</em></h2>
+        <p class="section-desc" style="margin-bottom:32px">
+          현장책임자가 스마트폰으로 투표수를 입력하는 순간,
+          본부와 방송 화면에 즉시 반영됩니다.
+          선관위보다 수 시간 빠른 독자 데이터.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted)">
+            <div style="width:6px;height:6px;border-radius:50%;background:var(--gold)"></div>
+            이름 + 전화번호 입력으로 즉시 접속
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted)">
+            <div style="width:6px;height:6px;border-radius:50%;background:var(--gold)"></div>
+            담당 동 드롭다운 선택 → 투표수 입력
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted)">
+            <div style="width:6px;height:6px;border-radius:50%;background:var(--gold)"></div>
+            전국 어디서나 같은 URL 하나로 운영
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-screen" id="demoScreen">
+        <div class="demo-header">
+          <div class="demo-dots">
+            <div class="demo-dot"></div>
+            <div class="demo-dot"></div>
+            <div class="demo-dot"></div>
+          </div>
+          <div class="demo-url">campvote.kr/dongdaemun-gap/minjoo</div>
+          <div class="live-pill">
+            <div class="live-blink"></div>LIVE
+          </div>
+        </div>
+        <div class="demo-body">
+          <div class="demo-stats">
+            <div class="demo-stat">
+              <span class="demo-stat-num" id="statTotal">0</span>
+              <div class="demo-stat-label">총 투표수</div>
+            </div>
+            <div class="demo-stat">
+              <span class="demo-stat-num" id="statRate">0%</span>
+              <div class="demo-stat-label">달성률</div>
+            </div>
+            <div class="demo-stat">
+              <span class="demo-stat-num" id="statDong">0</span>
+              <div class="demo-stat-label">보고 완료 동</div>
+            </div>
+          </div>
+          <div class="demo-bars" id="demoBars">
+            <div class="demo-bar-row">
+              <div class="demo-bar-name">청량리동</div>
+              <div class="demo-bar-track"><div class="demo-bar-fill gold" id="bar0"></div></div>
+              <div class="demo-bar-count" id="cnt0">0</div>
+            </div>
+            <div class="demo-bar-row">
+              <div class="demo-bar-name">회기동</div>
+              <div class="demo-bar-track"><div class="demo-bar-fill" id="bar1"></div></div>
+              <div class="demo-bar-count" id="cnt1">0</div>
+            </div>
+            <div class="demo-bar-row">
+              <div class="demo-bar-name">전농동</div>
+              <div class="demo-bar-track"><div class="demo-bar-fill" id="bar2"></div></div>
+              <div class="demo-bar-count" id="cnt2">0</div>
+            </div>
+            <div class="demo-bar-row">
+              <div class="demo-bar-name">답십리동</div>
+              <div class="demo-bar-track"><div class="demo-bar-fill red" id="bar3"></div></div>
+              <div class="demo-bar-count" id="cnt3">0</div>
+            </div>
+            <div class="demo-bar-row">
+              <div class="demo-bar-name">장안동</div>
+              <div class="demo-bar-track"><div class="demo-bar-fill" id="bar4"></div></div>
+              <div class="demo-bar-count" id="cnt4">0</div>
+            </div>
+          </div>
+          <div class="demo-toast" id="demoToast" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 운영 흐름 -->
+<section id="flow">
+  <div class="section-wrap">
+    <div class="section-label">How It Works</div>
+    <h2 class="section-title">5단계로<br><em>완성</em>되는 현장</h2>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-icon">🏛️</div>
+        <h4>캠프 URL 생성</h4>
+        <p>정당·지역 선택 후<br>고유 URL 1분 발급</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-icon">📲</div>
+        <h4>링크 배포</h4>
+        <p>현장책임자 30명에<br>카카오톡 링크 전송</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-icon">✍️</div>
+        <h4>현장 입력</h4>
+        <p>이름·폰·담당동·<br>투표수 입력·제출</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-icon">⚡</div>
+        <h4>실시간 반영</h4>
+        <p>1초 이내 전체<br>대시보드 자동 갱신</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-icon">📺</div>
+        <h4>방송 송출</h4>
+        <p>API로 방송 CG에<br>직접 연동 가능</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 수치 -->
+<section id="numbers">
+  <div class="section-wrap">
+    <div class="numbers-grid">
+      <div class="number-card">
+        <span class="number-big">254</span>
+        <div class="number-label">전국 국회의원<br>선거구 전체 지원</div>
+      </div>
+      <div class="number-card">
+        <span class="number-big">&lt;1s</span>
+        <div class="number-label">현장 입력 →<br>대시보드 반영 시간</div>
+      </div>
+      <div class="number-card">
+        <span class="number-big">3,500+</span>
+        <div class="number-label">전국 읍·면·동<br>주소 데이터 내장</div>
+      </div>
+      <div class="number-card">
+        <span class="number-big">∞</span>
+        <div class="number-label">동시 접속<br>현장책임자 제한 없음</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 방송 활용 -->
+<section id="broadcast">
+  <div class="section-wrap">
+    <div class="section-label">For Broadcasters</div>
+    <h2 class="section-title">방송사를 위한<br><em>독점 데이터</em></h2>
+    <p class="section-desc" style="margin-bottom:0">
+      선관위 발표 전, 수 시간 동안 방송사가 단독으로 보유할 수 있는<br>
+      실시간 경선 현황 데이터를 제공합니다.
+    </p>
+    <div class="broadcast-grid">
+      <div class="broadcast-cards">
+        <div class="bc-card">
+          <span class="bc-card-icon">📡</span>
+          <h4>실시간 API 연동</h4>
+          <p>방송 CG 시스템에 REST API로 직접 데이터 공급. 화면 전환 없이 자동 갱신.</p>
+        </div>
+        <div class="bc-card">
+          <span class="bc-card-icon">🗺️</span>
+          <h4>지역별 히트맵</h4>
+          <p>전국 지도 위에 실시간 투표율 시각화. 방송 그래픽으로 즉시 활용 가능.</p>
+        </div>
+        <div class="bc-card">
+          <span class="bc-card-icon">⏱️</span>
+          <h4>선관위보다 수 시간 빠름</h4>
+          <p>투표 진행 중 현황을 독자 데이터로 방송. 타 방송사 대비 압도적 정보 우위.</p>
+        </div>
+        <div class="bc-card">
+          <span class="bc-card-icon">📊</span>
+          <h4>다차원 분석 뷰</h4>
+          <p>지역별·시간대별·정당별 비교 분석. 선거 특집 방송 콘텐츠로 바로 활용.</p>
+        </div>
+      </div>
+
+      <div class="broadcast-screen" id="broadcastScreen">
+        <div class="tv-overlay">
+          <div class="tv-header">
+            <div class="tv-logo">📺 LIVE 경선 현황</div>
+            <div class="tv-live">LIVE</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:12px">
+            서울 동대문구갑 · 민주당 경선 · 실시간 집계
+          </div>
+          <div class="tv-bars">
+            <div class="tv-bar" style="height:85%;background:linear-gradient(180deg,#1A6EFF,#0A3A8A);animation-delay:0s"></div>
+            <div class="tv-bar" style="height:65%;background:linear-gradient(180deg,#C9A84C,#7A5C1E);animation-delay:.2s"></div>
+            <div class="tv-bar" style="height:90%;background:linear-gradient(180deg,#1A6EFF,#0A3A8A);animation-delay:.4s"></div>
+            <div class="tv-bar" style="height:45%;background:linear-gradient(180deg,#E03030,#8B0000);animation-delay:.6s"></div>
+            <div class="tv-bar" style="height:75%;background:linear-gradient(180deg,#1A6EFF,#0A3A8A);animation-delay:.8s"></div>
+            <div class="tv-bar" style="height:55%;background:linear-gradient(180deg,#C9A84C,#7A5C1E);animation-delay:1s"></div>
+            <div class="tv-bar" style="height:80%;background:linear-gradient(180deg,#1A6EFF,#0A3A8A);animation-delay:1.2s"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
+            <span>용신동</span><span>제기동</span><span>청량리동</span><span>회기동</span>
+            <span>전농동</span><span>답십리동</span><span>장안동</span>
+          </div>
+          <div style="margin-top:auto;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:11px;color:var(--muted)">현재 집계</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--gold)" id="tvCount">1,247</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:11px;color:var(--muted)">달성률</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#28CA41">83%</div>
+            </div>
+          </div>
+          <div class="tv-ticker">
+            <span style="font-weight:900;flex-shrink:0">속보</span>
+            <div style="overflow:hidden;flex:1">
+              <span class="tv-ticker-text">
+                청량리동 127표 보고 · 회기동 89표 보고 · 전농동 67표 보고 ·
+                답십리동 저조 — 현장 독려 중 · 장안동 92표 보고 ·
+                실시간 집계 총 1,247표 달성률 83% · CampVote 제공
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 플랜 -->
+<section id="plans">
+  <div class="section-wrap">
+    <div class="plans-header">
+      <div class="section-label">Pricing</div>
+      <h2 class="section-title">도입 플랜</h2>
+      <p style="color:var(--muted);font-size:16px;margin-top:12px">경선 규모에 맞는 플랜을 선택하세요</p>
+    </div>
+    <div class="plans-grid">
+      <div class="plan-card">
+        <div class="plan-name">체험판</div>
+        <div class="plan-price">무료</div>
+        <div class="plan-period">단일 경선 / 24시간</div>
+        <ul class="plan-features">
+          <li>현장책임자 10명 이하</li>
+          <li>동 단위 실시간 집계</li>
+          <li>본부 대시보드</li>
+          <li>데이터 보관 24시간</li>
+        </ul>
+        <a href="#" class="plan-cta">무료 시작</a>
+      </div>
+      <div class="plan-card">
+        <div class="plan-badge-featured">추천</div>
+        <div class="plan-name">경선 단건</div>
+        <div class="plan-price" style="font-size:30px">협의</div>
+        <div class="plan-period">1회 경선 / 7일 이용</div>
+        <ul class="plan-features">
+          <li>현장책임자 무제한</li>
+          <li>전국 254개 선거구</li>
+          <li>실시간 차트·대시보드</li>
+          <li>엑셀 데이터 다운로드</li>
+          <li>방송용 API 제공</li>
+          <li>전담 기술 지원</li>
+        </ul>
+        <a href="#" class="plan-cta gold">도입 문의</a>
+      </div>
+      <div class="plan-card">
+        <div class="plan-name">방송사·언론</div>
+        <div class="plan-price">별도<span>협의</span></div>
+        <div class="plan-period">전국 선거 / 특별 계약</div>
+        <ul class="plan-features">
+          <li>전국 캠프 데이터 통합</li>
+          <li>실시간 API 스트리밍</li>
+          <li>방송 CG 시스템 연동</li>
+          <li>지역별 히트맵 데이터</li>
+          <li>전용 서버 구성</li>
+          <li>24시간 운영 지원</li>
+        </ul>
+        <a href="#" class="plan-cta">제안서 요청</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-bg"></div>
+  <div class="section-wrap" style="position:relative;z-index:1;text-align:center">
+    <div class="section-label" style="justify-content:center">
+      <span style="width:32px;height:1px;background:var(--gold);display:block"></span>
+      Contact
+    </div>
+    <h2 class="cta-title">
+      다음 경선,<br>
+      <span class="gold">선관위보다 빠르게</span><br>
+      보여드립니다
+    </h2>
+    <p class="cta-sub">도입 문의 및 방송사 제안서 요청</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:20px">
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:14px 22px;text-align:center">
+        <div style="font-size:10px;color:#888;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">전화</div>
+        <div style="font-size:14px;font-weight:700;color:var(--gold)">010-5897-9982</div>
+      </div>
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:14px 22px;text-align:center">
+        <div style="font-size:10px;color:#888;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">이메일</div>
+        <div style="font-size:14px;font-weight:700;color:var(--gold)">voiceofpusan@gmail.com</div>
+      </div>
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:14px 22px;text-align:center">
+        <div style="font-size:10px;color:#888;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">카카오톡</div>
+        <div style="font-size:14px;font-weight:700;color:var(--gold)">jamesfund</div>
+      </div>
+    </div>
+    <div class="hero-cta">
+      <a href="mailto:voiceofpusan@gmail.com" class="btn-gold">도입 문의하기</a>
+      <a href="#" class="btn-outline">제안서 다운로드</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">CampVote</div>
+  <div class="footer-text">실시간 경선 투표 집계 플랫폼 · © 2026 CampVote</div>
+  <div class="footer-text" style="color:var(--gold)">Powered by Supabase Realtime</div>
+</footer>
+
+<script>
+// ── 파티클 ──
+const canvas = document.getElementById('particles')
+const ctx = canvas.getContext('2d')
+canvas.width = window.innerWidth
+canvas.height = window.innerHeight
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+})
+
+const particles = Array.from({length: 60}, () => ({
+  x: Math.random() * canvas.width,
+  y: Math.random() * canvas.height,
+  vx: (Math.random() - .5) * .3,
+  vy: (Math.random() - .5) * .3,
+  r: Math.random() * 1.5 + .3,
+  a: Math.random() * .4 + .1
+}))
+
+function drawParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy
+    if (p.x < 0) p.x = canvas.width
+    if (p.x > canvas.width) p.x = 0
+    if (p.y < 0) p.y = canvas.height
+    if (p.y > canvas.height) p.y = 0
+    ctx.beginPath()
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2)
+    ctx.fillStyle = `rgba(201,168,76,${p.a})`
+    ctx.fill()
+  })
+  // 연결선
+  particles.forEach((a, i) => {
+    particles.slice(i+1).forEach(b => {
+      const d = Math.hypot(a.x-b.x, a.y-b.y)
+      if (d < 120) {
+        ctx.beginPath()
+        ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y)
+        ctx.strokeStyle = `rgba(201,168,76,${.08 * (1-d/120)})`
+        ctx.lineWidth = .5
+        ctx.stroke()
+      }
+    })
+  })
+  requestAnimationFrame(drawParticles)
+}
+drawParticles()
+
+// ── 스크롤 진행 바 ──
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100
+  document.getElementById('progress-bar').style.width = pct + '%'
+})
+
+// ── 스크롤 인트로 애니메이션 ──
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible')
+  })
+}, { threshold: .15 })
+
+document.querySelectorAll(
+  '.problem-card,.problem-visual,.feature-card,.demo-screen,' +
+  '.flow-step,.number-card,.bc-card,.broadcast-screen,.plan-card'
+).forEach(el => observer.observe(el))
+
+// ── 실시간 데모 시뮬레이션 ──
+const dongs = ['청량리동','회기동','전농동','답십리동','장안동']
+const targets = [127, 89, 67, 45, 92]
+const toasts = [
+  '🔔 청량리동 — 홍길동 127표 보고',
+  '🔔 회기동 — 김철수 89표 보고',
+  '🔔 전농동 — 이영희 67표 보고',
+  '🔔 답십리동 — 박민준 45표 보고',
+  '🔔 장안동 — 최수연 92표 보고',
+]
+let demoVals = [0,0,0,0,0]
+let demoStep = 0
+
+function runDemo() {
+  if (demoStep >= dongs.length) {
+    // 리셋
+    setTimeout(() => {
+      demoVals = [0,0,0,0,0]
+      demoStep = 0
+      for(let i=0;i<5;i++){
+        document.getElementById('bar'+i).style.width = '0%'
+        document.getElementById('cnt'+i).textContent = '0'
+      }
+      document.getElementById('statTotal').textContent = '0'
+      document.getElementById('statRate').textContent = '0%'
+      document.getElementById('statDong').textContent = '0'
+      document.getElementById('demoToast').style.display = 'none'
+      setTimeout(runDemo, 1500)
+    }, 3000)
+    return
+  }
+
+  demoVals[demoStep] = targets[demoStep]
+  const pct = (targets[demoStep] / 127 * 100).toFixed(0)
+  document.getElementById('bar'+demoStep).style.width = pct + '%'
+  document.getElementById('cnt'+demoStep).textContent = targets[demoStep]
+
+  const total = demoVals.reduce((a,b) => a+b, 0)
+  const rate = Math.round(total / 420 * 100)
+
+  const statTotal = document.getElementById('statTotal')
+  statTotal.textContent = total.toLocaleString()
+  statTotal.classList.remove('counting')
+  void statTotal.offsetWidth
+  statTotal.classList.add('counting')
+
+  document.getElementById('statRate').textContent = rate + '%'
+  document.getElementById('statDong').textContent = demoStep + 1
+
+  const toast = document.getElementById('demoToast')
+  toast.textContent = toasts[demoStep]
+  toast.style.display = 'flex'
+
+  demoStep++
+  setTimeout(runDemo, 2200)
+}
+
+// 데모 화면이 보이면 시작
+const demoObserver = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) {
+    setTimeout(runDemo, 800)
+    demoObserver.disconnect()
+  }
+}, { threshold: .3 })
+demoObserver.observe(document.getElementById('demoScreen'))
+
+// ── TV 카운터 애니메이션 ──
+let tvNum = 1247
+setInterval(() => {
+  tvNum += Math.floor(Math.random() * 5)
+  const el = document.getElementById('tvCount')
+  if (el) el.textContent = tvNum.toLocaleString()
+}, 3000)
+
+// ── 숫자 카운트업 ──
+function countUp(el, target, duration=1500) {
+  const start = Date.now()
+  const isNum = !isNaN(target)
+  const update = () => {
+    const prog = Math.min((Date.now()-start)/duration, 1)
+    const ease = 1 - Math.pow(1-prog, 3)
+    if (isNum) el.textContent = Math.floor(ease * target).toLocaleString()
+    if (prog < 1) requestAnimationFrame(update)
+  }
+  update()
+}
+const numObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return
+    const el = e.target.querySelector('.number-big')
+    if (!el) return
+    const txt = el.textContent
+    if (txt === '254') countUp(el, 254)
+    else if (txt === '3,500+' || txt.includes('3')) {
+      let n = 0
+      const iv = setInterval(() => { n+=100; el.textContent=n.toLocaleString()+'+'; if(n>=3500)clearInterval(iv) }, 40)
+    }
+    numObserver.unobserve(e.target)
+  })
+}, {threshold:.5})
+document.querySelectorAll('.number-card').forEach(c => numObserver.observe(c))
+</script>
+</body>
+</html>
