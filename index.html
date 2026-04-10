@@ -262,13 +262,22 @@ function hideInnerNav(iframe) {
     if (nav) nav.style.display = 'none';
     doc.body.style.overflowX = 'hidden';
     doc.body.style.overflowY = 'auto';
-    // nav 높이만큼 잡아둔 padding-top 제거
-    const style = doc.createElement('style');
-    style.textContent = `
-      #bc-hero,#yt-hero,.hero-section,#hero{min-height:auto!important;padding-top:0!important}
-      .bc-inner,.yt-inner,.hero-inner,#hero{padding-top:40px!important}
-    `;
-    doc.head.appendChild(style);
+
+    // 히어로 min-height 제거 (inline style은 stylesheet보다 우선)
+    ['bc-hero','yt-hero','hero'].forEach(id => {
+      const el = doc.getElementById(id);
+      if (!el) return;
+      el.style.minHeight = 'auto';
+      el.style.paddingTop = '0';
+    });
+
+    // 내부 콘텐츠 패딩 줄이기
+    doc.querySelectorAll('.bc-inner, .yt-inner, .hero-inner').forEach(el => {
+      el.style.paddingTop = '40px';
+    });
+    // #hero는 padding 직접 설정
+    const heroEl = doc.getElementById('hero');
+    if (heroEl) heroEl.style.paddingTop = '40px';
   } catch(e) {}
 }
 
