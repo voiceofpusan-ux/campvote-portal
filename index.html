@@ -274,8 +274,8 @@ function hideInnerNav(iframe) {
     // nav 높이만큼 잡아둔 padding-top 제거
     const style = doc.createElement('style');
     style.textContent = `
-      #bc-hero,#yt-hero,.hero-section,#hero{min-height:0!important;align-items:flex-start!important}
-      .bc-inner,.yt-inner,.hero-inner,#hero{padding-top:32px!important}
+      #bc-hero,#yt-hero,.hero-section,#hero{padding-top:32px!important}
+      .bc-inner,.yt-inner,.hero-inner{padding-top:32px!important}
     `;
     doc.head.appendChild(style);
   } catch(e) {}
