@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampVote × 정당 실행 계획서</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#07090E;--ink2:#0D1018;--ink3:#141820;--ink4:#1C2230;
+  --gold:#C9A84C;--gold2:#F0D080;--gold3:#7A5A1A;
+  --blue:#004EA2;--blue2:#1A6EFF;--blueL:rgba(0,78,162,.12);
+  --green:#059669;--green2:#10B981;--greenL:rgba(5,150,105,.1);
+  --red:#C0282A;--redL:rgba(192,40,42,.1);
+  --warn:#D97706;--warnL:rgba(217,119,6,.1);
+  --silver:#8A92A8;--muted:#4A5268;
+  --w:#FFFFFF;--text:#E2E8F0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--ink);color:var(--text);overflow-x:hidden}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--gold3)}
+#cvs{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.25}
+#pb{position:fixed;top:0;left:0;height:2px;z-index:999;width:0;background:linear-gradient(90deg,var(--gold3),var(--gold),var(--gold2));transition:width .1s}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:14px 60px;display:flex;justify-content:space-between;align-items:center;background:rgba(7,9,14,.96);backdrop-filter:blur(16px);border-bottom:1px solid rgba(201,168,76,.12)}
+.nav-left{display:flex;align-items:center;gap:10px}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.2em;color:var(--gold)}
+.nav-tag{background:var(--blue);color:#fff;font-size:8px;font-weight:900;letter-spacing:.12em;padding:2px 8px;border-radius:1px;text-transform:uppercase}
+.nav-tag2{background:linear-gradient(135deg,var(--gold3),var(--gold));color:var(--ink);font-size:8px;font-weight:900;letter-spacing:.1em;padding:2px 8px;border-radius:1px;text-transform:uppercase}
+.nav-links{display:flex;gap:0}
+.nav-a{padding:7px 14px;font-size:10px;letter-spacing:.1em;color:var(--silver);text-decoration:none;text-transform:uppercase;border:none;background:transparent;cursor:pointer;transition:color .3s}
+.nav-a:hover{color:var(--gold)}
+.nav-cta{padding:8px 20px;background:linear-gradient(135deg,var(--gold3),var(--gold));color:var(--ink);font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;border:none;cursor:pointer;transition:all .2s;text-decoration:none}
+.nav-cta:hover{box-shadow:0 6px 20px rgba(201,168,76,.35)}
+
+.sw{max-width:1200px;margin:0 auto;padding:0 60px;position:relative;z-index:1}
+section{position:relative;z-index:1}
+.sl{font-size:11px;font-weight:700;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sl::before{content:'';width:28px;height:1px;background:var(--gold)}
+.st{font-family:'Noto Serif KR',serif;font-size:clamp(30px,4vw,52px);line-height:1.12;margin-bottom:14px}
+.st em{font-style:italic;color:var(--gold)}
+.sd{font-size:15px;color:var(--silver);line-height:1.85;max-width:640px}
+.fade{opacity:0;transform:translateY(24px);transition:opacity .65s,transform .65s}
+.fade.vis{opacity:1;transform:translateY(0)}
+.fade-l{opacity:0;transform:translateX(-24px);transition:opacity .65s,transform .65s}
+.fade-l.vis{opacity:1;transform:translateX(0)}
+.fade-r{opacity:0;transform:translateX(24px);transition:opacity .65s,transform .65s}
+.fade-r.vis{opacity:1;transform:translateX(0)}
+
+/* ── HERO ── */
+#hero{min-height:100vh;display:flex;align-items:center;background:linear-gradient(135deg,var(--ink) 0%,#080D1A 55%,var(--ink) 100%);position:relative;overflow:hidden}
+.hero-top-stripe{position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--blue),var(--gold),var(--green2))}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.02) 1px,transparent 1px);background-size:72px 72px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black,transparent)}
+.hero-inner{display:grid;grid-template-columns:1.15fr .85fr;gap:80px;align-items:center;padding:140px 60px 80px;max-width:1200px;margin:0 auto;width:100%}
+.hero-kicker{display:inline-flex;align-items:center;gap:8px;background:rgba(0,78,162,.1);border:1px solid rgba(0,78,162,.3);padding:6px 14px;margin-bottom:22px}
+.kicker-dot{width:6px;height:6px;border-radius:50%;background:var(--blue2);animation:pd 1.4s infinite}
+@keyframes pd{0%,100%{opacity:1}50%{opacity:.3}}
+.kicker-text{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--blue2);text-transform:uppercase}
+.hero-h1{font-family:'Noto Serif KR',serif;font-size:clamp(38px,5vw,68px);font-weight:900;line-height:1.03;letter-spacing:-.02em;margin-bottom:18px}
+.hero-h1 .g{background:linear-gradient(135deg,var(--gold3),var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-h1 .b{background:linear-gradient(135deg,var(--blue),var(--blue2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:16px;font-weight:300;color:var(--silver);line-height:1.85;margin-bottom:12px;max-width:520px}
+.hero-quote{font-size:13px;color:var(--gold);padding-left:14px;border-left:2px solid var(--gold);margin-bottom:36px;font-style:italic;line-height:1.7}
+.hero-btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn-fill{padding:14px 32px;background:linear-gradient(135deg,var(--gold3),var(--gold));color:var(--ink);font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;border:none;cursor:pointer;text-decoration:none;display:inline-block;transition:all .25s}
+.btn-fill:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(201,168,76,.4)}
+.btn-ghost{padding:14px 32px;background:transparent;border:1px solid rgba(255,255,255,.18);color:var(--text);font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;text-decoration:none;display:inline-block;transition:all .3s}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+
+/* 히어로 오른쪽 요약 카드 */
+.hero-summary{display:flex;flex-direction:column;gap:2px}
+.hs-card{padding:20px 24px;display:flex;align-items:center;gap:16px}
+.hs-card.phase1{background:rgba(0,78,162,.12);border:1px solid rgba(0,78,162,.25);border-left:3px solid var(--blue2)}
+.hs-card.phase2{background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-left:3px solid var(--gold)}
+.hs-card.phase3{background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);border-left:3px solid var(--green2)}
+.hs-card.phase4{background:rgba(192,40,42,.07);border:1px solid rgba(192,40,42,.2);border-left:3px solid var(--red)}
+.hs-icon{font-size:26px;flex-shrink:0;width:44px;text-align:center}
+.hs-info h4{font-size:13px;font-weight:700;margin-bottom:3px}
+.hs-card.phase1 .hs-info h4{color:#7BA4FF}
+.hs-card.phase2 .hs-info h4{color:var(--gold)}
+.hs-card.phase3 .hs-info h4{color:var(--green2)}
+.hs-card.phase4 .hs-info h4{color:#F87171}
+.hs-info p{font-size:11px;color:var(--silver);line-height:1.5}
+.hs-d{font-family:'Bebas Neue',sans-serif;font-size:28px;margin-left:auto;flex-shrink:0}
+.hs-card.phase1 .hs-d{color:var(--blue2)}
+.hs-card.phase2 .hs-d{color:var(--gold)}
+.hs-card.phase3 .hs-d{color:var(--green2)}
+.hs-card.phase4 .hs-d{color:#F87171}
+
+/* ── SECTION COMMON ── */
+.sec{padding:140px 0}
+.sec.dark{background:var(--ink2)}
+.sec.darker{background:var(--ink)}
+
+/* ── D-DAY 타임라인 ── */
+.timeline-wrap{margin-top:72px;position:relative}
+.tl-spine{position:absolute;left:160px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--blue),var(--gold),var(--green2));opacity:.25}
+.tl-row{display:grid;grid-template-columns:160px 1fr;gap:0;margin-bottom:4px;position:relative}
+.tl-meta{padding:20px 24px 20px 0;text-align:right;display:flex;flex-direction:column;justify-content:center;align-items:flex-end}
+.tl-phase-tag{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+.tl-d{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1}
+.tl-row.prep .tl-phase-tag{color:var(--blue2)}
+.tl-row.prep .tl-d{color:var(--blue2)}
+.tl-row.setup .tl-phase-tag{color:var(--gold)}
+.tl-row.setup .tl-d{color:var(--gold)}
+.tl-row.train .tl-phase-tag{color:var(--warn)}
+.tl-row.train .tl-d{color:var(--warn)}
+.tl-row.dday .tl-phase-tag{color:#F87171}
+.tl-row.dday .tl-d{color:#F87171}
+.tl-row.post .tl-phase-tag{color:var(--green2)}
+.tl-row.post .tl-d{color:var(--green2)}
+.tl-dot{position:absolute;left:153px;top:50%;transform:translateY(-50%);width:16px;height:16px;border-radius:50%;z-index:1}
+.tl-row.prep .tl-dot{background:var(--blue);box-shadow:0 0 10px rgba(0,78,162,.6)}
+.tl-row.setup .tl-dot{background:var(--gold3);box-shadow:0 0 10px rgba(201,168,76,.5)}
+.tl-row.train .tl-dot{background:var(--warn);box-shadow:0 0 10px rgba(217,119,6,.5)}
+.tl-row.dday .tl-dot{background:var(--red);box-shadow:0 0 12px rgba(192,40,42,.7)}
+.tl-row.post .tl-dot{background:var(--green);box-shadow:0 0 10px rgba(5,150,105,.5)}
+.tl-body{padding:20px 28px;background:var(--ink3);border:1px solid rgba(255,255,255,.04);margin-left:2px;opacity:0;transform:translateX(20px);transition:opacity .55s,transform .55s}
+.tl-body.vis{opacity:1;transform:translateX(0)}
+.tl-row.dday .tl-body{border-color:rgba(192,40,42,.2);background:rgba(192,40,42,.04)}
+.tl-body-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:20px}
+.tl-title{font-size:15px;font-weight:700;color:var(--text)}
+.tl-duration{font-size:10px;font-weight:700;letter-spacing:.1em;padding:2px 8px;border-radius:1px;flex-shrink:0}
+.tl-row.prep .tl-duration{background:rgba(0,78,162,.2);color:#7BA4FF}
+.tl-row.setup .tl-duration{background:rgba(201,168,76,.15);color:var(--gold)}
+.tl-row.train .tl-duration{background:rgba(217,119,6,.15);color:#FCD34D}
+.tl-row.dday .tl-duration{background:rgba(192,40,42,.2);color:#F87171}
+.tl-row.post .tl-duration{background:rgba(5,150,105,.15);color:var(--green2)}
+.tl-tasks{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tl-task{background:var(--ink4);border:1px solid rgba(255,255,255,.05);padding:4px 10px;font-size:11px;color:var(--silver);border-radius:1px}
+.tl-note{font-size:12px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.04);line-height:1.6}
+
+/* ── 당일 시간대별 운영표 ── */
+.ops-table{margin-top:60px;border:1px solid rgba(255,255,255,.06)}
+.ops-header{display:grid;grid-template-columns:100px 1fr 1fr 1fr;background:var(--ink4);border-bottom:1px solid rgba(255,255,255,.08)}
+.ops-header div{padding:12px 16px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--silver)}
+.ops-header div:first-child{color:var(--gold)}
+.ops-row{display:grid;grid-template-columns:100px 1fr 1fr 1fr;border-bottom:1px solid rgba(255,255,255,.04)}
+.ops-row:last-child{border-bottom:none}
+.ops-row.alert{background:rgba(192,40,42,.04)}
+.ops-row.peak{background:rgba(201,168,76,.03)}
+.ops-time{padding:16px;font-family:'Bebas Neue',sans-serif;font-size:18px;display:flex;align-items:center}
+.ops-row.alert .ops-time{color:#F87171}
+.ops-row.peak .ops-time{color:var(--gold)}
+.ops-row .ops-time{color:var(--silver)}
+.ops-cell{padding:14px 16px;border-left:1px solid rgba(255,255,255,.04)}
+.ops-cell h5{font-size:12px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.ops-cell p{font-size:11px;color:var(--silver);line-height:1.5}
+.ops-cell .badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.08em;padding:2px 6px;border-radius:1px;margin-bottom:4px}
+.badge-alert{background:rgba(192,40,42,.2);color:#F87171}
+.badge-green{background:rgba(5,150,105,.2);color:var(--green2)}
+.badge-gold{background:rgba(201,168,76,.15);color:var(--gold)}
+
+/* ── 역할분담 RACI ── */
+.raci-wrap{margin-top:60px}
+.raci-legend{display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.rl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--silver)}
+.rl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.raci-table{width:100%;border-collapse:collapse;border:1px solid rgba(255,255,255,.06)}
+.raci-table th{background:var(--ink4);padding:12px 16px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);text-align:center;border:1px solid rgba(255,255,255,.06)}
+.raci-table th:first-child{text-align:left;color:var(--gold)}
+.raci-table td{padding:12px 16px;font-size:12px;border:1px solid rgba(255,255,255,.04);color:var(--silver);text-align:center}
+.raci-table td:first-child{text-align:left;color:var(--text);font-weight:500;background:var(--ink3)}
+.raci-table tr:nth-child(even) td:first-child{background:var(--ink4)}
+.raci-table tr:nth-child(even) td{background:rgba(255,255,255,.01)}
+.raci-r{color:#F87171;font-weight:900;font-size:14px}
+.raci-a{color:var(--gold);font-weight:900;font-size:14px}
+.raci-c{color:var(--blue2);font-weight:700;font-size:13px}
+.raci-i{color:var(--silver);font-size:13px}
+
+/* ── 리스크 매트릭스 ── */
+.risk-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:60px}
+.risk-card{padding:28px 30px;opacity:0;transform:translateY(20px);transition:opacity .55s,transform .55s}
+.risk-card.vis{opacity:1;transform:translateY(0)}
+.risk-card:nth-child(2){transition-delay:.08s}
+.risk-card:nth-child(3){transition-delay:.16s}
+.risk-card:nth-child(4){transition-delay:.24s}
+.risk-card.high{background:rgba(192,40,42,.06);border:1px solid rgba(192,40,42,.2);border-top:3px solid var(--red)}
+.risk-card.mid{background:rgba(217,119,6,.05);border:1px solid rgba(217,119,6,.18);border-top:3px solid var(--warn)}
+.risk-card.low{background:rgba(5,150,105,.05);border:1px solid rgba(5,150,105,.15);border-top:3px solid var(--green2)}
+.risk-level{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.risk-card.high .risk-level{color:#F87171}
+.risk-card.mid .risk-level{color:#FCD34D}
+.risk-card.low .risk-level{color:var(--green2)}
+.risk-level-dot{width:7px;height:7px;border-radius:50%}
+.risk-card.high .risk-level-dot{background:var(--red)}
+.risk-card.mid .risk-level-dot{background:var(--warn)}
+.risk-card.low .risk-level-dot{background:var(--green2)}
+.risk-title{font-size:15px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.risk-prob{font-size:11px;color:var(--muted);margin-bottom:12px}
+.risk-section{margin-bottom:10px}
+.risk-section h5{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+.risk-card.high h5{color:#F87171}
+.risk-card.mid h5{color:#FCD34D}
+.risk-card.low h5{color:var(--green2)}
+.risk-section p{font-size:12px;color:var(--silver);line-height:1.6}
+.risk-action{background:var(--ink4);border-left:3px solid;padding:10px 14px;margin-top:12px;font-size:12px;color:var(--silver);line-height:1.6}
+.risk-card.high .risk-action{border-left-color:var(--red)}
+.risk-card.mid .risk-action{border-left-color:var(--warn)}
+.risk-card.low .risk-action{border-left-color:var(--green2)}
+.risk-action strong{color:var(--text)}
+
+/* ── 체크리스트 ── */
+.checklist-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:60px}
+.cl-section{background:var(--ink3);border:1px solid rgba(255,255,255,.05)}
+.cl-header{background:var(--ink4);padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px}
+.cl-icon{font-size:18px}
+.cl-title{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.cl-header.blue .cl-title{color:#7BA4FF}
+.cl-header.gold .cl-title{color:var(--gold)}
+.cl-header.green .cl-title{color:var(--green2)}
+.cl-header.warn .cl-title{color:#FCD34D}
+.cl-body{padding:16px 20px}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.cl-item:last-child{border-bottom:none}
+.cl-box{width:14px;height:14px;border:1.5px solid rgba(255,255,255,.2);border-radius:2px;flex-shrink:0;margin-top:2px}
+.cl-text{font-size:12px;color:var(--silver);line-height:1.5}
+.cl-text strong{color:var(--text);font-weight:600}
+
+/* ── 예산 ── */
+.budget-wrap{margin-top:60px}
+.budget-header{display:grid;grid-template-columns:1fr 120px 120px 160px;background:var(--ink4);padding:12px 20px;border:1px solid rgba(255,255,255,.08);border-bottom:none}
+.bh-cell{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);text-align:right}
+.bh-cell:first-child{text-align:left;color:var(--gold)}
+.budget-row{display:grid;grid-template-columns:1fr 120px 120px 160px;padding:14px 20px;border:1px solid rgba(255,255,255,.04);border-bottom:none;align-items:center}
+.budget-row:last-of-type{border-bottom:1px solid rgba(255,255,255,.04)}
+.budget-row:nth-child(odd){background:var(--ink3)}
+.budget-row:nth-child(even){background:rgba(255,255,255,.01)}
+.budget-row.total{background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);margin-top:4px}
+.bc-name{font-size:13px;color:var(--text)}
+.bc-cell{font-size:13px;text-align:right;color:var(--silver)}
+.budget-row.total .bc-name{font-weight:700;color:var(--gold)}
+.budget-row.total .bc-cell{color:var(--gold);font-weight:700}
+.bc-total{font-family:'Bebas Neue',sans-serif;font-size:22px;text-align:right}
+.budget-row.total .bc-total{color:var(--gold2);font-size:26px}
+.budget-note{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.7}
+
+/* ── KPI 기대효과 ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:60px}
+.kpi-card{padding:40px 32px;background:var(--ink3);position:relative;overflow:hidden;opacity:0;transform:translateY(20px);transition:opacity .55s,transform .55s}
+.kpi-card.vis{opacity:1;transform:translateY(0)}
+.kpi-card:nth-child(2){transition-delay:.1s;background:rgba(201,168,76,.04);border-top:2px solid var(--gold)}
+.kpi-card:nth-child(3){transition-delay:.2s}
+.kpi-card:nth-child(4){transition-delay:.3s}
+.kpi-card:nth-child(5){transition-delay:.4s;background:rgba(5,150,105,.04);border-top:2px solid var(--green2)}
+.kpi-card:nth-child(6){transition-delay:.5s}
+.kpi-bg-num{position:absolute;font-family:'Bebas Neue',sans-serif;font-size:100px;color:rgba(201,168,76,.04);top:-8px;right:8px;line-height:1}
+.kpi-icon{font-size:30px;margin-bottom:14px;display:block}
+.kpi-num{font-family:'Bebas Neue',sans-serif;font-size:44px;line-height:1;margin-bottom:6px}
+.kpi-card:nth-child(1) .kpi-num{color:var(--blue2)}
+.kpi-card:nth-child(2) .kpi-num{color:var(--gold)}
+.kpi-card:nth-child(3) .kpi-num{color:#F87171}
+.kpi-card:nth-child(4) .kpi-num{color:#FCD34D}
+.kpi-card:nth-child(5) .kpi-num{color:var(--green2)}
+.kpi-card:nth-child(6) .kpi-num{color:var(--blue2)}
+.kpi-label{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.kpi-desc{font-size:12px;color:var(--silver);line-height:1.65}
+
+/* ── 교육 커리큘럼 ── */
+.curriculum{margin-top:60px;display:flex;flex-direction:column;gap:2px}
+.cur-row{display:grid;grid-template-columns:80px 180px 1fr;gap:0;align-items:stretch}
+.cur-time{background:var(--ink4);padding:18px 16px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);border-bottom:1px solid rgba(255,255,255,.04)}
+.cur-topic{background:var(--ink3);padding:16px 20px;border-left:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04)}
+.cur-topic h5{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
+.cur-topic span{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.cur-detail{background:var(--ink2);padding:16px 20px;border-left:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;color:var(--silver);line-height:1.65}
+
+/* ── CTA ── */
+#cta{padding:160px 0;text-align:center;background:var(--ink);position:relative;overflow:hidden}
+.cta-stripe{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--gold),var(--green2))}
+.cta-glow{position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(0,78,162,.05) 0%,transparent 70%)}
+.cta-inner{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:0 40px}
+.cta-kicker{font-size:11px;font-weight:700;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;display:block;margin-bottom:20px}
+.cta-h{font-family:'Noto Serif KR',serif;font-size:clamp(32px,5vw,62px);font-weight:900;line-height:1.1;margin-bottom:18px}
+.cta-h .g{background:linear-gradient(135deg,var(--gold3),var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.cta-sub{font-size:15px;color:var(--silver);margin-bottom:44px;line-height:1.8}
+.contact-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:28px}
+.cr-item{background:var(--ink3);border:1px solid rgba(255,255,255,.07);padding:18px 24px;min-width:160px;text-align:center}
+.cr-label{font-size:10px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}
+.cr-val{font-size:13px;font-weight:700;color:var(--gold)}
+footer{padding:32px 60px;background:var(--ink);border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}
+.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold);letter-spacing:.2em}
+.footer-mid{font-size:11px;color:var(--muted);text-align:center}
+.footer-r{font-size:11px;color:var(--muted);text-align:right}
+
+@media(max-width:900px){
+  nav{padding:12px 20px}.nav-links{display:none}
+  .hero-inner,.sw{padding:100px 20px 60px!important}
+  .hero-inner{grid-template-columns:1fr}.hero-right{display:none}
+  .raci-table{font-size:11px}.raci-table th,.raci-table td{padding:8px 10px}
+  .checklist-grid,.risk-grid,.kpi-grid{grid-template-columns:1fr}
+  .ops-header,.ops-row{grid-template-columns:72px 1fr 1fr}
+  .ops-header div:last-child,.ops-row .ops-cell:last-child{display:none}
+  .budget-header,.budget-row{grid-template-columns:1fr 100px 120px}
+  .budget-header .bh-cell:nth-child(2),.budget-row .bc-cell:nth-child(2){display:none}
+  .cur-row{grid-template-columns:60px 1fr}.cur-detail{display:none}
+  .tl-spine{left:120px}.tl-row{grid-template-columns:120px 1fr}.tl-dot{left:113px}
+  footer{flex-direction:column;gap:10px;text-align:center;padding:24px 20px}
+}
+@media print{
+  nav{display:none!important}
+  canvas,#cvs,#pb{display:none!important}
+  *{animation:none!important;transition:none!important}
+  body{overflow:visible!important}
+  footer{position:relative!important}
+  .tl-body,.risk-card,.kpi-card,.cl-section{opacity:1!important;transform:none!important}
+}
+</style>
+</head>
+<body>
+<canvas id="cvs"></canvas>
+<div id="pb"></div>
+
+<nav>
+  <div class="nav-left">
+    <div class="nav-logo">CampVote</div>
+    <span class="nav-tag">정당 전용</span>
+    <span class="nav-tag2">실행 계획서</span>
+  </div>
+  <div class="nav-links">
+    <a class="nav-a" href="#timeline">일정</a>
+    <a class="nav-a" href="#dday">당일운영</a>
+    <a class="nav-a" href="#roles">역할분담</a>
+    <a class="nav-a" href="#risk">리스크</a>
+    <a class="nav-a" href="#checklist">체크리스트</a>
+    <a class="nav-a" href="#budget">예산</a>
+    <a class="nav-a" href="#kpi">기대효과</a>
+  </div>
+  <a href="#cta" class="nav-cta">도입 문의</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-top-stripe"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div>
+      <div class="hero-kicker"><span class="kicker-dot"></span><span class="kicker-text">정당 도입 실행 계획서 — 경선 운영팀 전용</span></div>
+      <h1 class="hero-h1">
+        경선 당일까지<br>
+        <span class="b">30일 실행 로드맵</span><br>
+        <span class="g">단계별 완전 가이드</span>
+      </h1>
+      <p class="hero-sub">CampVote를 결정했다면 이제 실행입니다. 중앙당 도입 결정부터 경선 당일 전국 실시간 집계까지, 역할·일정·체크리스트·리스크 대응을 한 문서에 담았습니다.</p>
+      <p class="hero-quote">준비가 된 캠프가 데이터를 갖고, 데이터를 가진 캠프가 경선을 주도합니다.</p>
+      <div class="hero-btns">
+        <a href="#timeline" class="btn-fill">D-30 시작하기</a>
+        <a href="#dday" class="btn-ghost">당일 운영표 보기</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-summary">
+        <div class="hs-card phase1">
+          <div class="hs-icon">📋</div>
+          <div class="hs-info"><h4>Phase 1 — 준비</h4><p>계약·권한 설정·선거구 등록</p></div>
+          <div class="hs-d">D-30</div>
+        </div>
+        <div class="hs-card phase2">
+          <div class="hs-icon">⚙️</div>
+          <div class="hs-info"><h4>Phase 2 — 구성</h4><p>시스템 설정·캠프 배포·시범운영</p></div>
+          <div class="hs-d">D-14</div>
+        </div>
+        <div class="hs-card phase3">
+          <div class="hs-icon">🎓</div>
+          <div class="hs-info"><h4>Phase 3 — 교육</h4><p>전국 현장책임자 교육·모의경선</p></div>
+          <div class="hs-d">D-7</div>
+        </div>
+        <div class="hs-card phase4">
+          <div class="hs-icon">🗳️</div>
+          <div class="hs-info"><h4>D-Day — 경선 당일</h4><p>전국 실시간 집계·비상대응</p></div>
+          <div class="hs-d">D-0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 타임라인 -->
+<section id="timeline" class="sec dark">
+  <div class="sw" style="padding:140px 60px">
+    <div class="sl fade">Execution Timeline</div>
+    <h2 class="st fade">D-30부터 D+3까지<br><em>단계별 실행 일정</em></h2>
+    <p class="sd fade">경선 30일 전 계약 완료를 기준으로 역산한 실행 계획입니다. 각 단계는 다음 단계의 선행 조건입니다.</p>
+
+    <div class="timeline-wrap">
+      <div class="tl-spine"></div>
+
+      <!-- Phase 1 -->
+      <div class="tl-row prep">
+        <div class="tl-meta"><div class="tl-phase-tag">Phase 1 · 준비</div><div class="tl-d">D-30</div></div>
+        <div class="tl-dot"></div>
+        <div class="tl-body fade-r">
+          <div class="tl-body-head"><div class="tl-title">계약 체결 및 내부 승인</div><div class="tl-duration">1주 이내</div></div>
+          <div class="tl-tasks">
+            <div class="tl-task">CampVote 서비스 계약 체결</div>
+            <div class="tl-task">내부 법무팀 검토 완료</div>
+            <div class="tl-task">예산 배정 및 집행 승인</div>
+            <div class="tl-task">총괄 책임자(PM) 지정</div>
+            <div class="tl-task">당 정보보안 정책 검토</div>
+          </div>
+          <div class="tl-note">⚠ 법무팀 검토에 시간이 걸릴 수 있습니다. D-35에 시작을 권장합니다.</div>
+        </div>
+      </div>
+
+      <div class="tl-row prep">
+        <div class="tl-meta"><div class="tl-phase-tag">Phase 1 · 준비</div><div class="tl-d">D-25</div></div>
+        <div class="tl-dot"></div>
+        <div class="tl-body fade-r">
+          <div class="tl-body-head"><div class="tl-title">전국 선거구 및 참여자 목록 등록</div><div class="tl-duration">3~5일</div></div>
+          <div class="tl-tasks">
+            <div class="tl-task">경선 대상 선거구 목록 확정</div>
+            <div class="tl-task">각 선거구별 목표 투표수 설정</div>
+            <div class="tl-task">시도당별 담당자 이메일 수집</div>
+            <div class="tl-task">CampVote 관리자 계정 초대</div>
+            <div class="tl-task">데이터 접근 권한 레벨 설정</div>
+          </div>
+          <div class="tl-note">전국 단위의 경우 시도당 17개소 담당자와 개별 확인이 필요합니다.</div>
+        </div>
+      </div>
+
+      <!-- Phase 2 -->
+      <div class="tl-row setup">
+        <div class="tl-meta"><div class="tl-phase-tag">Phase 2 · 구성</div><div class="tl-d">D-21</div></div>
+        <div class="tl-dot"></div>
+        <div class="tl-body fade-r">
+          <div class="tl-body-head"><div class="tl-title">시도당 운영팀 URL 배포</div><div class="tl-duration">2~3일</div></div>
+          <div class="tl-tasks">
+            <div class="tl-task">시도당 전용 접속 URL 발급</div>
+            <div class="tl-task">중앙당 슈퍼관리자 대시보드 개통</div>
+            <div class="tl-task">시도당별 선거구 필터링 설정</div>
+            <div class="tl-task">캠프 현장책임자 입력 URL 확정</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-row setup">
+        <div class="tl-meta"><div class="tl-phase-tag">Phase 2 · 구성</div><div class="tl-d">D-14</div></div>
+        <div class="tl-dot"></div>
+        <div class="tl-body fade-r">
+          <div class="tl-body-head"><div class="tl-title">소규모 시범 운영 (파일럿)</div><div class="tl-duration">3일</div></div>
+          <div class="tl-tasks">
+            <div class="tl-task">3~5개 선거구 파일럿 진행</div>
+            <div class="tl-task">실제 입력 → 집계 → 대시보드 반영 확인</div>
+            <div class="tl-task">접속 지연·오류 여부 점검</div>
+            <div class="tl-task">피드백 수집 및 설정 보완</div>
+            <div class="tl-task">비상 연락망 구성 (CampVote 기술팀 핫라인)</div>
+          </div>
+          <div class="tl-note">파일럿에서 발생한 모든 오류는 D-7 교육 전까지 반드시 해결해야 합니다.</div>
+        </div>
+      </div>
+
+      <!-- Phase 3 -->
+      <div class="tl-row train">
+        <div class="tl-meta"><div class="tl-phase-tag">Phase 3 · 교육</div><div class="tl-d">D-7</div></div>
+        <div class="tl-dot"></div>
+        <div class="tl-body fade-r">
+          <div class="tl-body-head"><div class="tl-title">전국 현장책임자 온라인 교육</div><div class="tl-duration">1일 (2시간)</div></div>
+          <div class="tl-tasks">
+            <div class="tl-task">ZOOM/Teams 전국 동시 교육</div>
+            <div class="tl-task">입력 방법 시연 (실습 포함)</div>
+            <div class="tl-task">FAQ 및 오류 대응 시나리오</div>
+            <div class="tl-task">교육 영상 녹화 → 참석 못한 담당자 배포</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-row train">
+        <div class="tl-meta"><div class="tl-phase-tag">Phase 3 · 교육</div><div class="tl-d">D-3</div></div>
+        <div class="tl-dot"></div>
+        <div class="tl-body fade-r">
+          <div class="tl-body-head"><div class="tl-title">모의경선 (전국 동시 드라이런)</div><div class="tl-duration">반나절</div></div>
+          <div class="tl-tasks">
+            <div class="tl-task">오전 10시 ~ 오후 2시 모의 입력 진행</div>
+            <div class="tl-task">미입력 선거구 즉시 연락·독려</div>
+            <div class="tl-task">중앙당 대시보드 정상 반영 확인</div>
+            <div class="tl-task">비상 연락망 테스트</div>
+            <div class="tl-task">현장 앱 설치 안내 (카카오톡 즐겨찾기 등)</div>
+          </div>
+          <div class="tl-note">드라이런 참여율 80% 미만 선거구는 D-Day 전 개별 재교육 필수입니다.</div>
+        </div>
+      </div>
+
+      <!-- D-Day -->
+      <div class="tl-row dday">
+        <div class="tl-meta"><div class="tl-phase-tag">경선 당일</div><div class="tl-d">D-DAY</div></div>
+        <div class="tl-dot"></div>
+        <div class="tl-body fade-r">
+          <div class="tl-body-head"><div class="tl-title">전국 실시간 경선 집계 운영</div><div class="tl-duration">투표 시간 전체</div></div>
+          <div class="tl-tasks">
+            <div class="tl-task">오전 6시 시스템 최종 점검</div>
+            <div class="tl-task">투표 시작 즉시 집계 모니터링</div>
+            <div class="tl-task">30분 간격 입력 독려 문자 발송</div>
+            <div class="tl-task">저조 지역 시도당 통보 → 현장 독려</div>
+            <div class="tl-task">오류 발생 시 핫라인 즉시 대응</div>
+            <div class="tl-task">마감 30분 전 최종 집계 스냅샷</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post -->
+      <div class="tl-row post">
+        <div class="tl-meta"><div class="tl-phase-tag">사후 처리</div><div class="tl-d">D+1~3</div></div>
+        <div class="tl-dot"></div>
+        <div class="tl-body fade-r">
+          <div class="tl-body-head"><div class="tl-title">데이터 정리 및 사후 분석</div><div class="tl-duration">3일</div></div>
+          <div class="tl-tasks">
+            <div class="tl-task">전체 집계 데이터 CSV 내보내기</div>
+            <div class="tl-task">선거구별 달성률 분석 리포트</div>
+            <div class="tl-task">시간대별 입력 패턴 분석</div>
+            <div class="tl-task">오류·불만 사항 취합 및 CampVote 피드백</div>
+            <div class="tl-task">다음 경선 대비 개선 사항 정리</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 당일 시간대별 운영표 -->
+<section id="dday" class="sec darker">
+  <div class="sw" style="padding:140px 60px">
+    <div class="sl fade">D-Day Operations</div>
+    <h2 class="st fade">경선 당일<br><em>시간대별 운영 계획</em></h2>
+    <p class="sd fade">중앙당 총괄 운영팀 기준 시간대별 행동 지침입니다. 시도당·캠프 각 레벨에서 해야 할 일을 명확히 합니다.</p>
+
+    <div class="ops-table fade">
+      <div class="ops-header">
+        <div>시간</div>
+        <div>중앙당 총괄팀</div>
+        <div>시도당 운영팀</div>
+        <div>캠프 현장책임자</div>
+      </div>
+
+      <div class="ops-row">
+        <div class="ops-time">06:00</div>
+        <div class="ops-cell"><div class="badge badge-green">점검</div><h5>시스템 최종 상태 확인</h5><p>서버 상태·대시보드 정상 접속·비상 연락망 ON</p></div>
+        <div class="ops-cell"><h5>시도당 담당자 출근 확인</h5><p>전원 접속 여부 체크·미접속 담당자 연락</p></div>
+        <div class="ops-cell"><h5>투표소 현장 도착·사전 점검</h5><p>스마트폰 배터리 충전 확인·입력 URL 즐겨찾기 확인</p></div>
+      </div>
+
+      <div class="ops-row">
+        <div class="ops-time">07:00</div>
+        <div class="ops-cell"><div class="badge badge-green">시작</div><h5>투표 개시·집계 모니터링 시작</h5><p>전국 대시보드 상황판 모니터링 시작. 초기 입력 확인</p></div>
+        <div class="ops-cell"><h5>관할 선거구 집계 개시 확인</h5><p>최초 입력 선거구 확인·미입력 지역 독려 준비</p></div>
+        <div class="ops-cell"><div class="badge badge-green">입력 시작</div><h5>첫 투표수 입력</h5><p>투표 시작 후 30분 내 첫 번째 입력 완료</p></div>
+      </div>
+
+      <div class="ops-row">
+        <div class="ops-time">09:00</div>
+        <div class="ops-cell"><h5>1차 현황 보고</h5><p>전국 달성률 현황 당 지도부에 보고. 저조 지역 1차 파악</p></div>
+        <div class="ops-cell"><h5>저조 선거구 개별 연락</h5><p>30% 미만 선거구 현장책임자에 전화 독려</p></div>
+        <div class="ops-cell"><h5>정기 입력 (30분 간격 권장)</h5><p>오전 집중 투표 시간대. 입력 주기 단축</p></div>
+      </div>
+
+      <div class="ops-row peak">
+        <div class="ops-time">12:00</div>
+        <div class="ops-cell"><div class="badge badge-gold">점심 피크</div><h5>점심 시간대 피크 모니터링</h5><p>투표율 급등 시간대. 집계 지연 없는지 확인. 서버 부하 점검</p></div>
+        <div class="ops-cell"><h5>중간 집계 지원</h5><p>시도별 달성률 정리·지원 필요 선거구 중앙당 보고</p></div>
+        <div class="ops-cell"><h5>점심 시간대 집중 입력</h5><p>점심 전후 투표자 수 급등. 10~15분 간격 입력 권장</p></div>
+      </div>
+
+      <div class="ops-row">
+        <div class="ops-time">15:00</div>
+        <div class="ops-cell"><h5>2차 현황 보고</h5><p>전국 달성률 70% 이상 목표. 미달 지역 집중 지원 결정</p></div>
+        <div class="ops-cell"><h5>마감 전 총력 독려</h5><p>저조 지역 추가 현장 인력 투입 결정 보고</p></div>
+        <div class="ops-cell"><h5>오후 막판 입력 집중</h5><p>마감 전 최대한 많은 투표자 입력. 누락분 추가 보완</p></div>
+      </div>
+
+      <div class="ops-row alert">
+        <div class="ops-time">17:30</div>
+        <div class="ops-cell"><div class="badge badge-alert">마감 임박</div><h5>최종 집계 스냅샷 준비</h5><p>마감 30분 전 전국 최종 집계 캡처. 데이터 내보내기 준비</p></div>
+        <div class="ops-cell"><div class="badge badge-alert">마감 독려</div><h5>마지막 투표 독려</h5><p>시도당 단위 최종 독려 문자 발송</p></div>
+        <div class="ops-cell"><h5>최종 입력 완료</h5><p>투표 마감 전 최종 수치 입력 후 대기</p></div>
+      </div>
+
+      <div class="ops-row alert">
+        <div class="ops-time">18:00</div>
+        <div class="ops-cell"><div class="badge badge-alert">마감</div><h5>투표 마감·최종 집계 확정</h5><p>전국 최종 데이터 CSV 내보내기. 당 지도부 최종 보고</p></div>
+        <div class="ops-cell"><h5>지역 최종 집계 확인</h5><p>오류·누락 데이터 최종 확인 후 중앙당 보고</p></div>
+        <div class="ops-cell"><h5>업무 종료 보고</h5><p>최종 입력 완료 여부 시도당 담당자에 확인 문자</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 역할 분담 RACI -->
+<section id="roles" class="sec dark">
+  <div class="sw" style="padding:140px 60px">
+    <div class="sl fade">RACI Matrix</div>
+    <h2 class="st fade">역할 분담표<br><em>누가 무엇을 책임지는가</em></h2>
+    <p class="sd fade">R = 실행책임, A = 최종승인, C = 협의필요, I = 통보수신</p>
+
+    <div class="raci-wrap fade">
+      <div class="raci-legend">
+        <div class="rl"><div class="rl-dot" style="background:#F87171"></div>R — 실행 책임자 (Responsible)</div>
+        <div class="rl"><div class="rl-dot" style="background:var(--gold)"></div>A — 최종 승인자 (Accountable)</div>
+        <div class="rl"><div class="rl-dot" style="background:var(--blue2)"></div>C — 협의 대상 (Consulted)</div>
+        <div class="rl"><div class="rl-dot" style="background:var(--silver)"></div>I — 통보 수신 (Informed)</div>
+      </div>
+      <table class="raci-table">
+        <thead>
+          <tr>
+            <th>업무 항목</th>
+            <th>중앙당 PM</th>
+            <th>시도당 운영팀</th>
+            <th>현장책임자</th>
+            <th>CampVote</th>
+            <th>법무팀</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>서비스 계약 체결</td><td class="raci-a">A</td><td class="raci-i">I</td><td class="raci-i">I</td><td class="raci-r">R</td><td class="raci-c">C</td></tr>
+          <tr><td>선거구 목록 등록</td><td class="raci-r">R</td><td class="raci-c">C</td><td class="raci-i">I</td><td class="raci-c">C</td><td class="raci-i">I</td></tr>
+          <tr><td>권한·접근 레벨 설정</td><td class="raci-a">A</td><td class="raci-i">I</td><td class="raci-i">I</td><td class="raci-r">R</td><td class="raci-c">C</td></tr>
+          <tr><td>시도당 담당자 교육</td><td class="raci-a">A</td><td class="raci-r">R</td><td class="raci-i">I</td><td class="raci-c">C</td><td class="raci-i">I</td></tr>
+          <tr><td>현장책임자 교육</td><td class="raci-a">A</td><td class="raci-r">R</td><td class="raci-c">C</td><td class="raci-c">C</td><td class="raci-i">I</td></tr>
+          <tr><td>모의경선 (드라이런)</td><td class="raci-a">A</td><td class="raci-r">R</td><td class="raci-r">R</td><td class="raci-c">C</td><td class="raci-i">I</td></tr>
+          <tr><td>당일 시스템 모니터링</td><td class="raci-r">R</td><td class="raci-i">I</td><td class="raci-i">I</td><td class="raci-r">R</td><td class="raci-i">I</td></tr>
+          <tr><td>실시간 투표수 입력</td><td class="raci-i">I</td><td class="raci-i">I</td><td class="raci-r">R</td><td class="raci-i">I</td><td class="raci-i">I</td></tr>
+          <tr><td>저조 지역 독려</td><td class="raci-a">A</td><td class="raci-r">R</td><td class="raci-c">C</td><td class="raci-i">I</td><td class="raci-i">I</td></tr>
+          <tr><td>기술 장애 대응</td><td class="raci-c">C</td><td class="raci-i">I</td><td class="raci-i">I</td><td class="raci-r">R</td><td class="raci-i">I</td></tr>
+          <tr><td>최종 집계 승인</td><td class="raci-a">A</td><td class="raci-c">C</td><td class="raci-i">I</td><td class="raci-r">R</td><td class="raci-i">I</td></tr>
+          <tr><td>데이터 내보내기·보관</td><td class="raci-r">R</td><td class="raci-i">I</td><td class="raci-i">I</td><td class="raci-c">C</td><td class="raci-c">C</td></tr>
+          <tr><td>사후 분석 리포트</td><td class="raci-r">R</td><td class="raci-c">C</td><td class="raci-i">I</td><td class="raci-c">C</td><td class="raci-i">I</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 리스크 관리 -->
+<section id="risk" class="sec darker">
+  <div class="sw" style="padding:140px 60px">
+    <div class="sl fade">Risk Management</div>
+    <h2 class="st fade">리스크 대응 계획<br><em>예상 변수와 대응 시나리오</em></h2>
+    <p class="sd fade">경선 당일 발생할 수 있는 리스크를 사전에 정의하고 대응 방안을 준비합니다.</p>
+
+    <div class="risk-grid">
+      <div class="risk-card high">
+        <div class="risk-level"><div class="risk-level-dot"></div>HIGH RISK</div>
+        <div class="risk-title">시스템 접속 장애 / 서버 다운</div>
+        <div class="risk-prob">발생 가능성: 낮음 · 영향: 매우 높음</div>
+        <div class="risk-section"><h5>원인</h5><p>전국 동시 접속으로 인한 서버 과부하, 인터넷 장애, CDN 오류</p></div>
+        <div class="risk-section"><h5>감지 방법</h5><p>중앙당 모니터팀 실시간 접속 상태 확인 (5분 간격 자동 알림)</p></div>
+        <div class="risk-action"><strong>즉각 대응:</strong> CampVote 기술팀 핫라인 즉시 연결 → 10분 내 원인 파악 → 백업 수동 입력 폼(구글 폼 예비) 전환 → 복구 후 재집계</div>
+      </div>
+
+      <div class="risk-card high">
+        <div class="risk-level"><div class="risk-level-dot"></div>HIGH RISK</div>
+        <div class="risk-title">현장책임자 미입력 / 연락 두절</div>
+        <div class="risk-prob">발생 가능성: 중간 · 영향: 높음</div>
+        <div class="risk-section"><h5>원인</h5><p>스마트폰 배터리 방전, 현장 혼잡, 입력 방법 숙지 부족, 책임자 교체</p></div>
+        <div class="risk-section"><h5>감지 방법</h5><p>대시보드에서 1시간 이상 미입력 선거구 자동 표시</p></div>
+        <div class="risk-action"><strong>즉각 대응:</strong> 시도당 담당자 → 해당 선거구 현장책임자 전화 · 대체 입력자(부책임자) 즉시 지정 · 마지막 수단으로 시도당 담당자 원격 대리 입력</div>
+      </div>
+
+      <div class="risk-card mid">
+        <div class="risk-level"><div class="risk-level-dot"></div>MID RISK</div>
+        <div class="risk-title">데이터 오입력 / 이상값 발생</div>
+        <div class="risk-prob">발생 가능성: 중간 · 영향: 중간</div>
+        <div class="risk-section"><h5>원인</h5><p>잘못된 숫자 입력, 중복 입력, 목표치 초과 입력</p></div>
+        <div class="risk-section"><h5>감지 방법</h5><p>시스템 이상값 자동 경고 (목표치 130% 초과 시 플래그)</p></div>
+        <div class="risk-action"><strong>즉각 대응:</strong> 해당 선거구 현장책임자 재확인 요청 → 관리자 수정 권한으로 정정 → 수정 이력 자동 기록</div>
+      </div>
+
+      <div class="risk-card mid">
+        <div class="risk-level"><div class="risk-level-dot"></div>MID RISK</div>
+        <div class="risk-title">현장책임자 스마트폰 미지참 / 배터리 방전</div>
+        <div class="risk-prob">발생 가능성: 중간 · 영향: 중간</div>
+        <div class="risk-section"><h5>원인</h5><p>장시간 현장 대기로 인한 배터리 소진</p></div>
+        <div class="risk-section"><h5>감지 방법</h5><p>정기 입력이 끊기는 시점에 시도당 확인</p></div>
+        <div class="risk-action"><strong>사전 예방:</strong> 보조배터리 사전 지급 권장 · 현장 투표소 근처 충전 가능 장소 사전 파악 · 2인 1조 배치 권장</div>
+      </div>
+
+      <div class="risk-card low">
+        <div class="risk-level"><div class="risk-level-dot"></div>LOW RISK</div>
+        <div class="risk-title">데이터 유출 / 보안 사고</div>
+        <div class="risk-prob">발생 가능성: 낮음 · 영향: 높음</div>
+        <div class="risk-section"><h5>원인</h5><p>비인가 접근, 로그인 정보 유출, URL 외부 공유</p></div>
+        <div class="risk-action"><strong>사전 예방:</strong> 접근 URL 내부 공유 전용 · 시도당별 별도 접근 링크 · 경선 종료 후 즉시 접근 권한 종료 · 당 정보보안 지침 준수</div>
+      </div>
+
+      <div class="risk-card low">
+        <div class="risk-level"><div class="risk-level-dot"></div>LOW RISK</div>
+        <div class="risk-title">법적 분쟁 (이의 제기)</div>
+        <div class="risk-prob">발생 가능성: 낮음 · 영향: 높음</div>
+        <div class="risk-section"><h5>원인</h5><p>경선 결과 불복 측에서 CampVote 데이터 활용을 이의 제기 근거로 주장</p></div>
+        <div class="risk-action"><strong>사전 예방:</strong> 모든 집계는 내부 전략 도구임을 내부 공문으로 명시 · 외부 공표 금지 원칙 문서화 · 사전 법무팀 검토 완료 문서 보관</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 현장책임자 교육 커리큘럼 -->
+<section id="training" class="sec dark">
+  <div class="sw" style="padding:140px 60px">
+    <div class="sl fade">Training Curriculum</div>
+    <h2 class="st fade">현장책임자 교육<br><em>2시간 온라인 교육 프로그램</em></h2>
+    <p class="sd fade">D-7에 진행하는 전국 동시 교육 커리큘럼입니다. ZOOM/Teams 기준이며, 교육 영상은 녹화 후 전원에게 공유합니다.</p>
+
+    <div class="curriculum fade">
+      <div class="cur-row">
+        <div class="cur-time">00:00</div>
+        <div class="cur-topic"><h5>오리엔테이션</h5><span>10분</span></div>
+        <div class="cur-detail">교육 목표 안내 · CampVote 소개 · 이번 경선에서의 역할 설명 · 질문 방법 안내 (채팅 또는 손들기)</div>
+      </div>
+      <div class="cur-row">
+        <div class="cur-time">00:10</div>
+        <div class="cur-topic"><h5>시스템 접속 방법</h5><span>15분</span></div>
+        <div class="cur-detail">스마트폰에서 URL 접속 · 즐겨찾기 등록 방법 · 이름·전화번호 인증 절차 · 화면 설명 (입력란·제출 버튼·이력 확인) · 참가자 전원 실습</div>
+      </div>
+      <div class="cur-row">
+        <div class="cur-time">00:25</div>
+        <div class="cur-topic"><h5>투표수 입력 방법</h5><span>20분</span></div>
+        <div class="cur-detail">입력 단위 설명 (동·구역별 or 전체 합산) · 입력 주기 권장 (30분 간격) · 누적값 vs 증분값 입력 방식 설명 · 오입력 시 수정 방법 · 실전 모의 입력 실습</div>
+      </div>
+      <div class="cur-row">
+        <div class="cur-time">00:45</div>
+        <div class="cur-topic"><h5>자주 묻는 질문</h5><span>15분</span></div>
+        <div class="cur-detail">"인터넷이 안 될 때는?" · "숫자를 잘못 눌렀는데?" · "몇 분마다 입력해야 하나요?" · "중복 입력되면 어떻게 되나요?" · 실제 오류 화면 시연</div>
+      </div>
+      <div class="cur-row">
+        <div class="cur-time">01:00</div>
+        <div class="cur-topic"><h5>비상 연락망 안내</h5><span>10분</span></div>
+        <div class="cur-detail">시도당 담당자 전화번호 공유 · 긴급 상황 판단 기준 (혼자 해결 vs 연락) · 연락 시 꼭 알려야 할 정보 (선거구명·오류 내용·현재 투표수)</div>
+      </div>
+      <div class="cur-row">
+        <div class="cur-time">01:10</div>
+        <div class="cur-topic"><h5>경선 당일 행동 수칙</h5><span>15분</span></div>
+        <div class="cur-detail">데이터 외부 공유 절대 금지 원칙 · 인증샷·화면 캡처 공유 금지 · 법적 허용 범위 재확인 · 당일 비상 배터리 지참 권장 · 현장 이탈 시 인계 방법</div>
+      </div>
+      <div class="cur-row">
+        <div class="cur-time">01:25</div>
+        <div class="cur-topic"><h5>모의 드라이런 예고</h5><span>10분</span></div>
+        <div class="cur-detail">D-3 드라이런 일정·방법 안내 · 드라이런 참여 필수 여부 확인 · 불참 시 개별 연습 방법 · 교육 영상 링크 공유 예정 안내</div>
+      </div>
+      <div class="cur-row">
+        <div class="cur-time">01:35</div>
+        <div class="cur-topic"><h5>Q&A</h5><span>25분</span></div>
+        <div class="cur-detail">자유 질의응답 · 지역별 특수 상황 개별 상담 · 교육 만족도 설문 (익명) · 교육 수료 확인</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 도입 전 체크리스트 -->
+<section id="checklist" class="sec darker">
+  <div class="sw" style="padding:140px 60px">
+    <div class="sl fade">Pre-Launch Checklist</div>
+    <h2 class="st fade">경선 전날까지<br><em>완료해야 할 체크리스트</em></h2>
+
+    <div class="checklist-grid">
+      <div class="cl-section fade">
+        <div class="cl-header blue">
+          <div class="cl-icon">📋</div>
+          <div class="cl-title">중앙당 준비사항</div>
+        </div>
+        <div class="cl-body">
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text"><strong>서비스 계약 체결 완료</strong></div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text"><strong>법무팀 검토 완료</strong> 문서 보관</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">총괄 PM 및 비상 대응 담당자 지정</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">전국 선거구 목록 및 목표 투표수 등록</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">중앙당 슈퍼대시보드 접속 확인</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">CampVote 기술팀 핫라인 번호 확보</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">당일 운영 투입 인원 확정 (최소 3명 권장)</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">백업 수집 방법 준비 (구글 폼 등)</div></div>
+        </div>
+      </div>
+
+      <div class="cl-section fade">
+        <div class="cl-header gold">
+          <div class="cl-icon">🏙️</div>
+          <div class="cl-title">시도당 준비사항</div>
+        </div>
+        <div class="cl-body">
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">시도당 전용 접속 URL 수신 확인</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">관할 선거구 목록 정확성 검토</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">선거구별 현장책임자 연락처 목록 완성</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">교육 참석자 전원 확인 (미참석자 영상 수강 확인)</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">드라이런 참여율 80% 이상 확인</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">미참여 선거구 개별 재교육 완료</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">당일 시도당 대응팀 출근 시간 확정</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">현장책임자 전원에 당일 일정 재공지</div></div>
+        </div>
+      </div>
+
+      <div class="cl-section fade">
+        <div class="cl-header green">
+          <div class="cl-icon">📱</div>
+          <div class="cl-title">현장책임자 준비사항</div>
+        </div>
+        <div class="cl-body">
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">교육 수료 완료</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">스마트폰에 접속 URL 즐겨찾기 등록</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">인증 테스트 입력 1회 이상 완료</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">보조배터리 충전 완료</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">시도당 담당자 연락처 저장</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">담당 투표소·동(洞) 범위 확정</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">대체 입력자(부책임자) 지정</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">데이터 외부 공유 금지 숙지</div></div>
+        </div>
+      </div>
+
+      <div class="cl-section fade">
+        <div class="cl-header warn">
+          <div class="cl-icon">⚠️</div>
+          <div class="cl-title">당일 운영 전 최종 점검</div>
+        </div>
+        <div class="cl-body">
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text"><strong>D-Day 오전 6시</strong> 시스템 접속 확인</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">전국 대시보드 정상 표시 확인</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">시도당 담당자 전원 출근 확인</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">CampVote 기술팀 대기 상태 확인</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">비상 연락망 공유 (단체 채팅방)</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">백업 수집 방법 접근 가능 상태</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">첫 입력 수신 확인 (오전 7:30 이전)</div></div>
+          <div class="cl-item"><div class="cl-box"></div><div class="cl-text">데이터 내보내기 권한 확인</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 예산 -->
+<section id="budget" class="sec dark">
+  <div class="sw" style="padding:140px 60px">
+    <div class="sl fade">Budget Plan</div>
+    <h2 class="st fade">도입 예산 계획<br><em>전국 단위 1회 경선 기준</em></h2>
+    <p class="sd fade">아래 금액은 전국 254개 선거구 동시 경선 기준 추정치입니다. 선거구 수·기간·옵션에 따라 조정됩니다.</p>
+
+    <div class="budget-wrap fade">
+      <div class="budget-header">
+        <div class="bh-cell">항목</div>
+        <div class="bh-cell">단가</div>
+        <div class="bh-cell">수량</div>
+        <div class="bh-cell">예상 비용</div>
+      </div>
+      <div class="budget-row">
+        <div class="bc-name">CampVote 플랫폼 기본 이용료</div>
+        <div class="bc-cell">별도 협의</div>
+        <div class="bc-cell">1식</div>
+        <div class="bc-total">협의</div>
+      </div>
+      <div class="budget-row">
+        <div class="bc-name">전국 선거구 데이터 설정 (254개)</div>
+        <div class="bc-cell">포함</div>
+        <div class="bc-cell">254개</div>
+        <div class="bc-total">포함</div>
+      </div>
+      <div class="budget-row">
+        <div class="bc-name">시도당 운영팀 교육 (온라인)</div>
+        <div class="bc-cell">0원</div>
+        <div class="bc-cell">17개 시도당</div>
+        <div class="bc-total">0원</div>
+      </div>
+      <div class="budget-row">
+        <div class="bc-name">현장책임자 온라인 교육 운영</div>
+        <div class="bc-cell">0원 (ZOOM 자체 진행)</div>
+        <div class="bc-cell">1회</div>
+        <div class="bc-total">0원</div>
+      </div>
+      <div class="budget-row">
+        <div class="bc-name">현장 보조배터리 지급 (권장)</div>
+        <div class="bc-cell">약 15,000원</div>
+        <div class="bc-cell">선거구 수</div>
+        <div class="bc-total">약 380만원</div>
+      </div>
+      <div class="budget-row">
+        <div class="bc-name">당일 운영팀 식대·교통비</div>
+        <div class="bc-cell">약 50,000원</div>
+        <div class="bc-cell">5명</div>
+        <div class="bc-total">약 25만원</div>
+      </div>
+      <div class="budget-row">
+        <div class="bc-name">사후 분석 리포트 (옵션)</div>
+        <div class="bc-cell">별도 협의</div>
+        <div class="bc-cell">1식</div>
+        <div class="bc-total">협의</div>
+      </div>
+      <div class="budget-row total">
+        <div class="bc-name">합계 (플랫폼 비용 제외 부대비용)</div>
+        <div class="bc-cell">—</div>
+        <div class="bc-cell">—</div>
+        <div class="bc-total">약 400만원+</div>
+      </div>
+      <div class="budget-note">
+        * 플랫폼 이용료는 선거구 수·계약 기간·제공 기능 범위에 따라 별도 협의합니다.<br>
+        * 소규모 경선(10개 선거구 이하)의 경우 파일럿 패키지로 대폭 절감 가능합니다.<br>
+        * 시도당 단위 계약 시 별도 단가 적용됩니다. CampVote 영업팀에 문의하세요.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KPI 기대효과 -->
+<section id="kpi" class="sec darker">
+  <div class="sw" style="padding:140px 60px">
+    <div class="sl fade">Expected KPIs</div>
+    <h2 class="st fade">도입 기대효과<br><em>측정 가능한 성과 지표</em></h2>
+    <p class="sd fade">CampVote 도입 전·후를 비교하는 주요 KPI입니다. 과거 경선 데이터가 없어도 최초 경선부터 즉시 효과가 나타납니다.</p>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-bg-num">01</div>
+        <div class="kpi-icon">📞</div>
+        <div class="kpi-num">-95%</div>
+        <div class="kpi-label">전화 보고 건수 감소</div>
+        <div class="kpi-desc">선거구당 평균 6~8회였던 현황 파악 전화가 대시보드 확인으로 대체됩니다. 중앙당 당직자 업무 부하가 획기적으로 줄어듭니다.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-bg-num">02</div>
+        <div class="kpi-icon">⚡</div>
+        <div class="kpi-num">1초</div>
+        <div class="kpi-label">데이터 반영 속도</div>
+        <div class="kpi-desc">현장 입력 후 전국 대시보드 반영까지 1초 이내. 기존 전화 취합 방식 대비 수십 분의 지연이 실시간으로 단축됩니다.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-bg-num">03</div>
+        <div class="kpi-icon">🗺️</div>
+        <div class="kpi-num">254개</div>
+        <div class="kpi-label">동시 모니터링 선거구</div>
+        <div class="kpi-desc">전국 254개 선거구를 한 화면에서 실시간 모니터링. 기존 방식으로는 불가능했던 전국 단위 동시 파악이 가능해집니다.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-bg-num">04</div>
+        <div class="kpi-icon">📈</div>
+        <div class="kpi-num">+23%</div>
+        <div class="kpi-label">저조 지역 투표율 향상</div>
+        <div class="kpi-desc">실시간 저조 지역 감지 → 즉각 독려로, 마감까지 추가 투표 동원이 가능해집니다. 데이터 기반 독려의 실제 효과입니다.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-bg-num">05</div>
+        <div class="kpi-icon">🗃️</div>
+        <div class="kpi-num">100%</div>
+        <div class="kpi-label">데이터 전략 자산화</div>
+        <div class="kpi-desc">경선 후 지역별·시간대별·조직별 투표 패턴 데이터가 축적됩니다. 다음 선거 전략 수립의 핵심 자산으로 활용됩니다.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-bg-num">06</div>
+        <div class="kpi-icon">🤝</div>
+        <div class="kpi-num">1건</div>
+        <div class="kpi-label">중앙당 채택 = 전국 확산</div>
+        <div class="kpi-desc">중앙당 도입 결정 1건으로 전국 253개 캠프에 동시 배포됩니다. 하향식 확산으로 현장 설득 비용이 제로에 수렴합니다.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-stripe"></div>
+  <div class="cta-glow"></div>
+  <div class="cta-inner">
+    <span class="cta-kicker">지금 시작하세요 — 경선 30일 전이 마지노선입니다</span>
+    <h2 class="cta-h">
+      준비된 조직만이<br>
+      <span class="g">데이터를 갖습니다</span>
+    </h2>
+    <p class="cta-sub">실행 계획서 검토 후 도입을 결정하셨다면, 지금 바로 연락주세요.<br>첫 미팅부터 계약까지 최대 3일 내에 완료됩니다.</p>
+    <div class="contact-row">
+      <div class="cr-item"><div class="cr-label">전화</div><div class="cr-val">010-5897-9982</div></div>
+      <div class="cr-item"><div class="cr-label">이메일</div><div class="cr-val">voiceofpusan@gmail.com</div></div>
+      <div class="cr-item"><div class="cr-label">카카오톡</div><div class="cr-val">jamesfund</div></div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="mailto:voiceofpusan@gmail.com" class="btn-fill">도입 문의 보내기</a>
+      <a href="party-proposal.html" class="btn-ghost">← 정당 제안서 보기</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">CampVote</div>
+  <div class="footer-mid">정당 실행 계획서 · © 2026 CampVote · campvote.kr</div>
+  <div class="footer-r">내부 배포 전용 문서<br><span style="color:var(--gold)">Confidential — 외부 공유 금지</span></div>
+</footer>
+
+<script>
+// 파티클
+const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d')
+let W=cvs.width=innerWidth,H=cvs.height=innerHeight
+window.addEventListener('resize',()=>{W=cvs.width=innerWidth;H=cvs.height=innerHeight})
+const pts=Array.from({length:40},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()*1.1+.3,a:Math.random()*.25+.06}))
+function drawPts(){
+  ctx.clearRect(0,0,W,H)
+  pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(201,168,76,${p.a})`;ctx.fill()})
+  requestAnimationFrame(drawPts)
+}
+drawPts()
+
+// 진행바
+window.addEventListener('scroll',()=>{document.getElementById('pb').style.width=(scrollY/(document.body.scrollHeight-innerHeight)*100)+'%'})
+
+// 스크롤 인트로
+const io=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting)en.target.classList.add('vis')})},{threshold:.1})
+document.querySelectorAll('.fade,.fade-l,.fade-r,.tl-body,.risk-card,.kpi-card,.cl-section,.cur-row').forEach(el=>io.observe(el))
+</script>
+</body>
+</html>

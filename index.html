@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampVote — 투표 모니터링 시스템 포털</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Noto Sans KR',sans-serif}
+body{background:#07090E;display:flex;flex-direction:column}
+
+/* ── TOP NAV ── */
+#top-nav{
+  flex-shrink:0;
+  height:52px;
+  background:rgba(7,9,14,.97);
+  border-bottom:1px solid rgba(201,168,76,.2);
+  display:flex;align-items:center;
+  padding:0 24px;gap:0;
+  z-index:9999;
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+}
+.tn-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22px;letter-spacing:.2em;
+  color:#C9A84C;
+  margin-right:20px;flex-shrink:0;
+}
+.tn-badge{
+  background:#C0282A;color:#fff;
+  font-size:8px;font-weight:900;letter-spacing:.12em;
+  padding:2px 7px;border-radius:1px;
+  text-transform:uppercase;margin-right:20px;flex-shrink:0;
+}
+.tn-tabs{display:flex;gap:0;overflow-x:auto;flex:1;scrollbar-width:none}
+.tn-tabs::-webkit-scrollbar{display:none}
+.tn-tab{
+  flex-shrink:0;
+  padding:0 18px;height:52px;
+  font-size:11px;font-weight:500;letter-spacing:.08em;
+  color:#8A92A8;
+  background:transparent;border:none;cursor:pointer;
+  text-transform:uppercase;
+  position:relative;
+  transition:color .25s,background .25s;
+  white-space:nowrap;
+}
+.tn-tab:hover{color:#C9A84C;background:rgba(201,168,76,.05)}
+.tn-tab.active{color:#fff}
+.tn-tab.active::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+}
+.tn-tab[data-tab="intro"].active::after{background:#C9A84C}
+.tn-tab[data-tab="bc"].active::after{background:#1A3A8A}
+.tn-tab[data-tab="yt"].active::after{background:#FF0000}
+.tn-tab[data-tab="broadcast"].active::after{background:#C9A84C}
+.tn-tab[data-tab="party"].active::after{background:#004EA2}
+.tn-tab[data-tab="demo"].active::after{background:#10B981}
+
+/* 탭 색상 강조 */
+.tn-tab[data-tab="bc"].active{color:#7BA4FF;background:rgba(26,58,138,.12)}
+.tn-tab[data-tab="yt"].active{color:#FF6B6B;background:rgba(255,0,0,.08)}
+.tn-tab[data-tab="party"].active{color:#6EB0FF;background:rgba(0,78,162,.12)}
+.tn-tab[data-tab="demo"].active{color:#34D399;background:rgba(16,185,129,.08)}
+.tn-tab[data-tab="execplan"].active::after{background:#C9A84C}
+.tn-tab[data-tab="execplan"].active{color:#F0D080;background:rgba(201,168,76,.1)}
+
+.tn-pdf{
+  flex-shrink:0;margin-left:8px;
+  padding:6px 14px;
+  background:transparent;
+  border:1px solid rgba(201,168,76,.35);
+  color:#C9A84C;font-size:10px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;
+  transition:all .2s;
+  white-space:nowrap;
+  display:flex;align-items:center;gap:6px;
+  position:relative;
+}
+.tn-pdf:hover{background:rgba(201,168,76,.1);border-color:#C9A84C;box-shadow:0 0 12px rgba(201,168,76,.2)}
+.tn-pdf svg{width:13px;height:13px;flex-shrink:0}
+.tn-pdf.printing{opacity:.5;pointer-events:none}
+
+/* ── PDF 토스트 ── */
+#pdf-toast{
+  position:fixed;bottom:28px;right:28px;z-index:99999;
+  background:#1C2230;border:1px solid rgba(201,168,76,.3);
+  color:#C9A84C;font-size:12px;font-weight:500;
+  padding:12px 20px;border-radius:2px;
+  display:flex;align-items:center;gap:10px;
+  transform:translateY(80px);opacity:0;
+  transition:transform .3s,opacity .3s;
+  pointer-events:none;
+}
+#pdf-toast.show{transform:translateY(0);opacity:1}
+#pdf-toast svg{width:16px;height:16px;flex-shrink:0}
+
+.tn-cta{
+  flex-shrink:0;margin-left:8px;
+  padding:7px 18px;
+  background:linear-gradient(135deg,#7A5A1A,#C9A84C);
+  color:#07090E;font-size:10px;font-weight:900;
+  letter-spacing:.1em;text-transform:uppercase;
+  border:none;cursor:pointer;
+  transition:box-shadow .2s;
+  white-space:nowrap;
+}
+.tn-cta:hover{box-shadow:0 6px 20px rgba(201,168,76,.4)}
+
+/* ── IFRAME 영역 ── */
+#frame-area{flex:1;position:relative;overflow:hidden}
+.tab-frame{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  border:none;display:none;
+  background:#07090E;
+}
+.tab-frame.active{display:block}
+
+/* ── 로딩 오버레이 ── */
+.loading-overlay{
+  position:absolute;inset:0;
+  background:#07090E;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:16px;z-index:10;
+  transition:opacity .4s;
+}
+.loading-overlay.hidden{opacity:0;pointer-events:none}
+.loading-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:48px;letter-spacing:.2em;
+  background:linear-gradient(135deg,#7A5A1A,#C9A84C,#F0D080);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.loading-dots{display:flex;gap:8px}
+.loading-dots span{
+  width:6px;height:6px;border-radius:50%;
+  background:#C9A84C;animation:ldot 1.2s infinite;
+}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes ldot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+@media(max-width:700px){
+  .tn-logo{font-size:18px;margin-right:8px}
+  .tn-badge{display:none}
+  .tn-tab{padding:0 12px;font-size:10px}
+  .tn-pdf span{display:none}
+  .tn-cta{display:none}
+  #pdf-toast{bottom:16px;right:16px;left:16px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ TOP NAVIGATION ══ -->
+<nav id="top-nav">
+  <div class="tn-logo">CampVote</div>
+  <div class="tn-badge">Portal</div>
+
+  <div class="tn-tabs">
+    <button class="tn-tab active" data-tab="intro"    onclick="switchTab('intro')">시스템 소개</button>
+    <button class="tn-tab"        data-tab="bc"       onclick="switchTab('bc')">📺 공중파·종편 제안서</button>
+    <button class="tn-tab"        data-tab="yt"       onclick="switchTab('yt')">▶ 대형유튜브 제안서</button>
+    <button class="tn-tab"        data-tab="broadcast" onclick="switchTab('broadcast')">🎙 방송국 홍보기획서</button>
+    <button class="tn-tab"        data-tab="party"    onclick="switchTab('party')">🏛 정당 제안서</button>
+    <button class="tn-tab"        data-tab="execplan" onclick="switchTab('execplan')">📌 정당 실행 계획서</button>
+    <button class="tn-tab"        data-tab="demo"     onclick="switchTab('demo')">🎬 시연영상</button>
+  </div>
+
+  <button class="tn-pdf" id="pdf-btn" onclick="downloadPDF()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="12" y1="18" x2="12" y2="12"/>
+      <polyline points="9 15 12 18 15 15"/>
+    </svg>
+    PDF 저장
+  </button>
+  <button class="tn-cta" onclick="openContact()">도입 문의</button>
+</nav>
+
+<!-- ── PDF 토스트 알림 ── -->
+<div id="pdf-toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
+  <span id="pdf-toast-msg">인쇄 다이얼로그에서 PDF로 저장하세요</span>
+</div>
+
+<!-- ══ IFRAME AREA ══ -->
+<div id="frame-area">
+
+  <!-- 로딩 표시 -->
+  <div class="loading-overlay" id="loader">
+    <div class="loading-logo">CampVote</div>
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- 시스템 소개 -->
+  <iframe
+    class="tab-frame active"
+    id="frame-intro"
+    data-tab="intro"
+    src="투표모니터링시스템소개.html"
+  ></iframe>
+
+  <!-- 공중파·종편 -->
+  <iframe
+    class="tab-frame"
+    id="frame-bc"
+    data-tab="bc"
+    src="투표모니터링시스템공중파_대형유투브제안서.html"
+  ></iframe>
+
+  <!-- 대형유튜브 (별도 iframe — yt 탭 전용) -->
+  <iframe
+    class="tab-frame"
+    id="frame-yt"
+    data-tab="yt"
+    src="투표모니터링시스템공중파_대형유투브제안서.html"
+  ></iframe>
+
+  <!-- 방송국 홍보기획서 -->
+  <iframe
+    class="tab-frame"
+    id="frame-broadcast"
+    data-tab="broadcast"
+    src="투표모니터링시스템방송국홍보기획서.html"
+  ></iframe>
+
+  <!-- 정당 제안서 -->
+  <iframe
+    class="tab-frame"
+    id="frame-party"
+    data-tab="party"
+    src="party-proposal.html"
+  ></iframe>
+
+  <!-- 정당 실행 계획서 -->
+  <iframe
+    class="tab-frame"
+    id="frame-execplan"
+    data-tab="execplan"
+    src="party-execution-plan.html"
+  ></iframe>
+
+  <!-- 시연영상 -->
+  <iframe
+    class="tab-frame"
+    id="frame-demo"
+    data-tab="demo"
+    src="투표모니터링시스템시연영상.html"
+  ></iframe>
+
+</div>
+
+<script>
+// ── 현재 활성 탭 ──
+let currentTab = 'intro';
+
+// ── 내부 nav 숨김 ──
+function hideInnerNav(iframe) {
+  try {
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    const nav = doc.querySelector('nav');
+    if (nav) nav.style.display = 'none';
+    doc.body.style.overflowX = 'hidden';
+    doc.body.style.overflowY = 'auto';
+    // nav 높이만큼 잡아둔 padding-top 제거
+    const style = doc.createElement('style');
+    style.textContent = `
+      #bc-hero,#yt-hero,.hero-section,#hero{min-height:0!important;align-items:flex-start!important}
+      .bc-inner,.yt-inner,.hero-inner,#hero{padding-top:32px!important}
+    `;
+    doc.head.appendChild(style);
+  } catch(e) {}
+}
+
+// ── 탭 전환 ──
+function switchTab(tab) {
+  if (currentTab === tab) return;
+
+  // 네비게이션 활성 표시
+  document.querySelectorAll('.tn-tab').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.tab === tab) btn.classList.add('active');
+  });
+
+  // 이전 탭 숨김
+  const prevFrame = document.getElementById('frame-' + currentTab);
+  if (prevFrame) prevFrame.classList.remove('active');
+
+  currentTab = tab;
+
+  // 새 탭 표시
+  const newFrame = document.getElementById('frame-' + tab);
+  if (newFrame) newFrame.classList.add('active');
+}
+
+// ── 모든 iframe onload 처리 ──
+document.querySelectorAll('.tab-frame').forEach(iframe => {
+  iframe.addEventListener('load', function() {
+    const tabKey = this.id.replace('frame-', '');
+
+    // 내부 nav 숨김
+    hideInnerNav(this);
+
+    // yt iframe: 로드 후 유튜브 탭으로 전환
+    if (tabKey === 'yt') {
+      setTimeout(() => {
+        try {
+          const win = this.contentWindow;
+          if (win && win.switchPage) win.switchPage('yt');
+          hideInnerNav(this);
+        } catch(e) {}
+      }, 150);
+    }
+
+    // bc iframe: 공중파 탭 기본값 (이미 bc가 active라 별도 처리 불필요)
+    if (tabKey === 'bc') {
+      setTimeout(() => {
+        try {
+          const win = this.contentWindow;
+          if (win && win.switchPage) win.switchPage('bc');
+        } catch(e) {}
+      }, 150);
+    }
+
+    // 로더 숨김
+    if (tabKey === 'intro') {
+      setTimeout(() => {
+        const loader = document.getElementById('loader');
+        if (loader) loader.classList.add('hidden');
+        setTimeout(() => { if(loader) loader.style.display = 'none'; }, 400);
+      }, 300);
+    }
+  });
+});
+
+// ── PDF 저장 ──
+const PDF_TITLES = {
+  intro:     'CampVote_시스템소개',
+  bc:        'CampVote_공중파종편_제안서',
+  yt:        'CampVote_대형유튜브_제안서',
+  broadcast: 'CampVote_방송국홍보기획서',
+  party:     'CampVote_정당제안서',
+  execplan:  'CampVote_정당실행계획서',
+  demo:      'CampVote_시연영상',
+};
+
+const PRINT_CSS = `
+@media print {
+  nav { display: none !important; }
+  canvas, #cvs, #particles, #pb, #progress-bar { display: none !important; }
+  * { animation: none !important; transition: none !important; }
+  body { overflow: visible !important; background: #fff !important; color: #000 !important; }
+  .page { display: block !important; }
+  #intro { display: none !important; }
+}
+`;
+
+function showToast(msg, duration = 3500) {
+  const toast = document.getElementById('pdf-toast');
+  document.getElementById('pdf-toast-msg').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), duration);
+}
+
+function downloadPDF() {
+  const frame = document.getElementById('frame-' + currentTab);
+
+  if (!frame || !frame.contentWindow) {
+    showToast('페이지가 아직 로드 중입니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+
+  try {
+    const doc = frame.contentDocument || frame.contentWindow.document;
+
+    // 제목을 탭명으로 변경하여 파일명 힌트 제공
+    const origTitle = doc.title;
+    doc.title = PDF_TITLES[currentTab] || origTitle;
+
+    // 프린트 CSS 주입 (중복 방지)
+    if (!doc.getElementById('cv-print-style')) {
+      const style = doc.createElement('style');
+      style.id = 'cv-print-style';
+      style.textContent = PRINT_CSS;
+      doc.head.appendChild(style);
+    }
+
+    // 버튼 비활성화
+    const btn = document.getElementById('pdf-btn');
+    btn.classList.add('printing');
+
+    showToast(`📄 ${PDF_TITLES[currentTab]} — 인쇄 다이얼로그에서 "PDF로 저장"을 선택하세요`, 5000);
+
+    // 약간 딜레이 후 프린트 (토스트 표시 대기)
+    setTimeout(() => {
+      frame.contentWindow.print();
+      // 제목 복원 & 버튼 활성화
+      setTimeout(() => {
+        doc.title = origTitle;
+        btn.classList.remove('printing');
+      }, 1500);
+    }, 200);
+
+  } catch(e) {
+    showToast('PDF 저장 중 오류가 발생했습니다.');
+  }
+}
+
+// ── 도입 문의 버튼 ──
+function openContact() {
+  const activeFrame = document.getElementById('frame-' + currentTab);
+  if (activeFrame) {
+    try {
+      const doc = activeFrame.contentDocument || activeFrame.contentWindow.document;
+      // 문의 섹션으로 스크롤
+      const contactSection = doc.querySelector('#bc-final, #yt-final, #contact, [id*="final"], [id*="contact"], [id*="cta"]');
+      if (contactSection) {
+        contactSection.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+    } catch(e) {}
+  }
+  // fallback: 소개 탭의 문의 섹션
+  window.open('mailto:voiceofpusan@gmail.com');
+}
+</script>
+
+</body>
+</html>
