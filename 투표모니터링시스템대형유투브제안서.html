@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampVote — 대형 유튜브 파트너십 제안서</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#07090E;--ink2:#0E1118;--ink3:#151A26;--ink4:#1C2230;
+  --gold:#C9A84C;--gold2:#F0D080;--gold3:#7A5A1A;
+  --red:#C0282A;--red2:#E05050;
+  --yt:#FF0000;--yt2:#FF6B6B;
+  --blue:#1A3A8A;--blue2:#2A5AE0;
+  --green:#10B981;
+  --silver:#8A92A8;--muted:#4A5268;
+  --w:#FFFFFF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--ink);color:var(--w);overflow-x:hidden;cursor:default}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--gold3)}
+
+/* ── 파티클 ── */
+#cvs{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.35}
+
+/* ── 진행바 ── */
+#pb{position:fixed;top:0;left:0;height:2px;width:0;z-index:1000;background:linear-gradient(90deg,#CC0000,var(--yt),var(--yt2));transition:width .1s}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;justify-content:space-between;align-items:center;padding:16px 60px;background:rgba(7,9,14,.92);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,0,0,.1)}
+.nav-left{display:flex;align-items:center;gap:14px}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.2em;color:var(--gold)}
+.nav-badge{background:var(--yt);color:#fff;font-size:9px;font-weight:900;letter-spacing:.14em;padding:3px 8px;border-radius:1px;text-transform:uppercase}
+.nav-links{display:flex;gap:0}
+.nav-link{padding:8px 18px;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;color:var(--silver);border:none;background:transparent;cursor:pointer;transition:color .3s}
+.nav-link:hover{color:var(--yt)}
+.nav-link.active-bc{color:#fff;background:rgba(192,40,42,.2)}
+.nav-link.active-yt{color:#fff;background:rgba(255,0,0,.2)}
+.nav-cta{padding:8px 20px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:linear-gradient(135deg,#CC0000,var(--yt));color:#fff;border:none;cursor:pointer;transition:all .2s;text-decoration:none}
+.nav-cta:hover{box-shadow:0 8px 24px rgba(255,0,0,.35)}
+
+/* ── 공통 레이아웃 ── */
+.sw{max-width:1280px;margin:0 auto;padding:0 60px}
+.sl{font-size:11px;font-weight:700;letter-spacing:.22em;color:var(--yt2);text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sl::before{content:'';width:28px;height:1px;background:var(--yt)}
+.st{font-family:'DM Serif Display',serif;font-size:clamp(34px,4vw,56px);line-height:1.1;margin-bottom:16px}
+.st em{font-style:italic;color:var(--yt2)}
+.sd{font-size:16px;color:var(--silver);line-height:1.8;max-width:580px}
+
+/* ── YT 히어로 ── */
+#yt-hero{min-height:100vh;position:relative;display:flex;align-items:center;overflow:hidden}
+.yt-hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(255,0,0,.06) 0%,transparent 65%),radial-gradient(ellipse 50% 50% at 20% 80%,rgba(201,168,76,.05) 0%,transparent 55%)}
+.yt-noise{position:absolute;inset:0;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px}
+.yt-inner{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:120px 60px 80px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.yt-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(255,0,0,.1);border:1px solid rgba(255,0,0,.25);padding:5px 14px;margin-bottom:28px;border-radius:2px}
+.yt-sub-badge{background:var(--yt);padding:2px 7px;font-size:9px;font-weight:900;letter-spacing:.1em;border-radius:1px}
+.yt-eyebrow-text{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--yt2);text-transform:uppercase}
+.yt-h1{font-family:'Noto Serif KR',serif;font-size:clamp(42px,5vw,72px);font-weight:900;line-height:1.04;letter-spacing:-.02em;margin-bottom:16px}
+.yt-h1 .r{background:linear-gradient(135deg,#CC0000,var(--yt),var(--yt2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.yt-h1 .g{background:linear-gradient(135deg,var(--gold3),var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.yt-sub{font-size:17px;font-weight:300;color:var(--silver);line-height:1.8;margin-bottom:14px;max-width:520px}
+.yt-tagline{font-size:14px;font-weight:500;color:var(--yt2);margin-bottom:40px;padding-left:16px;border-left:2px solid var(--yt)}
+.yt-btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn-yt{padding:15px 36px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;border:none;cursor:pointer;transition:all .25s;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn-yt.fill{background:linear-gradient(135deg,#CC0000,var(--yt));color:#fff}
+.btn-yt.fill:hover{transform:translateY(-2px);box-shadow:0 16px 48px rgba(255,0,0,.4)}
+.btn-yt.outline{background:transparent;border:1px solid rgba(255,255,255,.2);color:var(--w)}
+.btn-yt.outline:hover{border-color:var(--yt);color:var(--yt)}
+
+/* YT 모바일 목업 */
+.yt-phone-wrap{position:relative;display:flex;justify-content:center}
+.yt-phone{background:var(--ink3);border:2px solid rgba(255,255,255,.1);border-radius:24px;width:300px;overflow:hidden;box-shadow:0 50px 120px rgba(0,0,0,.7);animation:phoneFloat 4s ease-in-out infinite}
+@keyframes phoneFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.ph-notch{background:var(--ink4);height:28px;display:flex;justify-content:center;align-items:center;gap:8px}
+.ph-camera{width:8px;height:8px;border-radius:50%;background:#222}
+.ph-speaker{width:40px;height:4px;border-radius:2px;background:#1a1a1a}
+.ph-screen{padding:0}
+.ph-yt-header{background:#0F0F0F;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #222}
+.ph-yt-logo{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.08em}
+.ph-yt-logo span{color:var(--yt)}
+.ph-live-count{font-size:10px;color:var(--silver)}
+.ph-video-area{background:#000;height:160px;position:relative;overflow:hidden}
+.ph-video-overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:10px}
+.ph-live-badge{background:var(--yt);color:#fff;font-size:9px;font-weight:900;padding:2px 6px;letter-spacing:.08em;width:fit-content}
+.ph-view-count{font-size:9px;color:rgba(255,255,255,.7);background:rgba(0,0,0,.6);padding:2px 6px;width:fit-content;align-self:flex-end}
+.ph-chart-mini{display:flex;align-items:flex-end;gap:3px;height:60px;padding:0 10px;background:rgba(0,0,0,.5);border-top:1px solid rgba(255,255,255,.08);position:absolute;bottom:0;left:0;right:0}
+.ph-bar-mini{flex:1;border-radius:1px 1px 0 0;transition:height .8s ease}
+.ph-info{background:#0F0F0F;padding:10px 14px}
+.ph-title{font-size:12px;font-weight:700;line-height:1.4;margin-bottom:6px}
+.ph-channel{font-size:10px;color:var(--silver);display:flex;align-items:center;gap:6px}
+.ph-verified{width:12px;height:12px;border-radius:50%;background:var(--silver);font-size:7px;display:inline-flex;align-items:center;justify-content:center;color:#000;font-weight:900}
+.ph-stats-row{display:flex;gap:8px;padding:8px 14px;background:#0F0F0F;border-top:1px solid #1A1A1A}
+.ph-stat{flex:1;text-align:center}
+.ph-stat-num{font-family:'Bebas Neue',sans-serif;font-size:16px;display:block}
+.ph-stat-num.r{color:var(--yt)}
+.ph-stat-num.g{color:var(--gold)}
+.ph-stat-label{font-size:9px;color:var(--silver)}
+.ph-home{background:#0F0F0F;height:28px;display:flex;justify-content:center;align-items:center}
+.ph-home-bar{width:80px;height:3px;background:#333;border-radius:2px}
+
+/* ── 기회 섹션 ── */
+#yt-opportunity{padding:160px 0;background:var(--ink2)}
+.opp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:80px}
+.og{background:var(--ink3);padding:40px 32px;opacity:0;transform:translateY(24px);transition:opacity .5s,transform .5s;position:relative;overflow:hidden}
+.og.vis{opacity:1;transform:translateY(0)}
+.og:nth-child(2){transition-delay:.12s;border-top:2px solid var(--yt)}
+.og:nth-child(3){transition-delay:.24s}
+.og-bg-num{position:absolute;font-family:'Bebas Neue',sans-serif;font-size:120px;color:rgba(255,0,0,.04);top:-10px;right:10px;line-height:1}
+.og-icon{font-size:32px;margin-bottom:16px;display:block}
+.og h3{font-size:17px;font-weight:700;margin-bottom:12px}
+.og p{font-size:13px;color:var(--silver);line-height:1.7}
+.og-tag{display:inline-block;background:rgba(255,0,0,.1);border:1px solid rgba(255,0,0,.2);color:var(--yt2);font-size:10px;font-weight:700;letter-spacing:.1em;padding:3px 9px;margin-top:12px;border-radius:1px}
+
+/* ── 콘텐츠 포맷 ── */
+#yt-format{padding:160px 0;background:var(--ink)}
+.fmt-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:80px}
+.fmt-card{background:var(--ink2);border:1px solid rgba(255,255,255,.06);padding:36px;opacity:0;transform:translateY(20px);transition:opacity .5s,transform .5s;position:relative}
+.fmt-card.vis{opacity:1;transform:translateY(0)}
+.fmt-card:nth-child(2){transition-delay:.1s}
+.fmt-card:nth-child(3){transition-delay:.2s}
+.fmt-card:nth-child(4){transition-delay:.3s}
+.fmt-card:hover{border-color:rgba(255,0,0,.2)}
+.fmt-num{font-family:'Bebas Neue',sans-serif;font-size:52px;color:rgba(255,0,0,.1);position:absolute;top:12px;right:16px;line-height:1}
+.fmt-card h3{font-size:16px;font-weight:700;margin-bottom:10px;color:var(--yt2)}
+.fmt-card p{font-size:13px;color:var(--silver);line-height:1.7}
+.fmt-example{background:var(--ink3);border:1px solid rgba(255,0,0,.12);padding:10px 14px;margin-top:14px;font-size:12px;color:var(--silver);border-left:3px solid var(--yt)}
+.fmt-example strong{color:var(--yt2);font-weight:700}
+
+/* ── 수익화 ── */
+#yt-monetize{padding:160px 0;background:var(--ink2)}
+.mon-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;margin-top:80px}
+.mon-cards{display:flex;flex-direction:column;gap:16px}
+.mc{display:flex;gap:16px;background:var(--ink3);border:1px solid rgba(255,255,255,.05);padding:20px 24px;opacity:0;transform:translateX(-20px);transition:opacity .5s,transform .5s}
+.mc.vis{opacity:1;transform:translateX(0)}
+.mc:nth-child(2){transition-delay:.1s}.mc:nth-child(3){transition-delay:.2s}.mc:nth-child(4){transition-delay:.3s}
+.mc:hover{border-color:rgba(255,0,0,.2)}
+.mc-icon{font-size:28px;flex-shrink:0;padding-top:2px}
+.mc-body h4{font-size:14px;font-weight:700;margin-bottom:6px}
+.mc-body p{font-size:12px;color:var(--silver);line-height:1.6}
+.mc-amount{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--yt2);margin-top:4px}
+.mon-stat-box{background:var(--ink3);border:1px solid rgba(255,0,0,.15);padding:40px;opacity:0;transform:translateX(20px);transition:opacity .8s .2s,transform .8s .2s}
+.mon-stat-box.vis{opacity:1;transform:translateX(0)}
+.mon-stat-box h4{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--yt2);margin-bottom:28px}
+.ms-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.ms-label{font-size:12px;color:var(--silver)}
+.ms-val{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold)}
+
+/* ── YT 요금 ── */
+#yt-price{padding:160px 0;background:var(--ink)}
+.yt-price-cards{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:2px;margin-top:60px}
+.ypc{background:var(--ink2);padding:40px 32px;opacity:0;transform:translateY(20px);transition:opacity .5s,transform .5s}
+.ypc.vis{opacity:1;transform:translateY(0)}
+.ypc:nth-child(2){background:var(--ink3);border:1px solid rgba(255,0,0,.3);transition-delay:.1s}
+.ypc:nth-child(3){transition-delay:.2s}
+.ypc-badge{display:inline-block;background:linear-gradient(135deg,#CC0000,var(--yt));color:#fff;font-size:10px;font-weight:900;padding:3px 9px;letter-spacing:.08em;margin-bottom:10px;border-radius:1px}
+.ypc-name{font-size:11px;font-weight:700;letter-spacing:.16em;color:var(--silver);text-transform:uppercase;margin-bottom:12px}
+.ypc-price{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;color:var(--w);margin-bottom:3px}
+.ypc-price span{font-size:17px;color:var(--silver)}
+.ypc-period{font-size:12px;color:var(--silver);margin-bottom:24px}
+.ypc-list{list-style:none;margin-bottom:24px}
+.ypc-list li{font-size:13px;color:var(--silver);padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:8px}
+.ypc-list li::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--yt);flex-shrink:0}
+.ypc-btn{display:block;width:100%;padding:12px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;text-align:center;background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--w);cursor:pointer;transition:all .3s;text-decoration:none;border-radius:1px}
+.ypc-btn.yt-fill{background:linear-gradient(135deg,#CC0000,var(--yt));border:none;color:#fff}
+.ypc-btn:hover{transform:translateY(-2px)}
+
+/* ── CTA ── */
+.final-cta-section{padding:160px 0;text-align:center;position:relative;overflow:hidden}
+.final-cta-section.yt-cta{background:var(--ink)}
+.fcta-bg-yt{position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(255,0,0,.04) 0%,transparent 70%)}
+.fcta-inner{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:0 40px}
+.fcta-label{font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;margin-bottom:20px;display:block}
+.fcta-label.yt-l{color:var(--yt2)}
+.fcta-title{font-family:'Noto Serif KR',serif;font-size:clamp(36px,5vw,68px);font-weight:900;line-height:1.1;margin-bottom:20px}
+.fcta-sub{font-size:17px;color:var(--silver);margin-bottom:48px}
+.fcta-contact{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:500px;margin:0 auto}
+.contact-item{background:var(--ink3);border:1px solid rgba(255,255,255,.06);padding:20px;text-align:center}
+.contact-label{font-size:10px;color:var(--silver);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.contact-val{font-size:14px;font-weight:700;color:var(--gold)}
+.contact-val.yt-val{color:var(--yt2)}
+
+/* ── 공통 푸터 ── */
+footer{padding:36px 60px;background:var(--ink);border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}
+.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold);letter-spacing:.2em}
+.footer-mid{font-size:11px;color:var(--muted);text-align:center}
+.footer-right{font-size:11px;color:var(--muted);text-align:right}
+
+/* ── 애니메이션 ── */
+@keyframes pd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
+.fade-up{opacity:0;transform:translateY(24px);transition:opacity .6s,transform .6s}
+.fade-up.vis{opacity:1;transform:translateY(0)}
+.fade-left{opacity:0;transform:translateX(-24px);transition:opacity .6s,transform .6s}
+.fade-left.vis{opacity:1;transform:translateX(0)}
+.fade-right{opacity:0;transform:translateX(24px);transition:opacity .6s,transform .6s}
+.fade-right.vis{opacity:1;transform:translateX(0)}
+
+@media(max-width:900px){
+  nav{padding:14px 20px}.nav-links{display:none}
+  .sw{padding:0 20px}
+  .yt-inner{grid-template-columns:1fr;padding:100px 20px 60px}
+  .yt-phone-wrap{display:none}
+  .mon-grid{grid-template-columns:1fr}
+  .yt-price-cards,.opp-grid{grid-template-columns:1fr;gap:8px}
+  .fmt-grid{grid-template-columns:1fr}
+  .fcta-contact{grid-template-columns:1fr}
+  footer{flex-direction:column;gap:10px;text-align:center;padding:24px 20px}
+}
+@media print{
+  nav{display:none!important}
+  canvas,#cvs,#pb{display:none!important}
+  *{animation:none!important;transition:none!important}
+  body{overflow:visible!important;background:#fff!important;color:#000!important}
+  footer{position:relative!important}
+  .yt-hero-bg,.yt-noise{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<canvas id="cvs"></canvas>
+<div id="pb"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <div class="nav-logo">CampVote</div>
+    <div class="nav-badge">YouTube</div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="투표모니터링시스템공중파제안서.html">공중파·종편</a>
+    <a class="nav-link active-yt" href="투표모니터링시스템대형유투브제안서.html">대형 유튜브</a>
+  </div>
+  <a href="#yt-final" class="nav-cta">파트너십 문의</a>
+</nav>
+
+<!-- 히어로 -->
+<section id="yt-hero">
+  <div class="yt-hero-bg"></div>
+  <div class="yt-noise"></div>
+  <div class="yt-inner">
+    <div>
+      <div class="yt-eyebrow">
+        <span class="yt-sub-badge">YouTube</span>
+        <span class="yt-eyebrow-text">대형 유튜브 채널 전용 제안</span>
+      </div>
+      <h1 class="yt-h1">
+        공중파도<br>모르는 걸<br>
+        <span class="r">당신 채널이</span><br>
+        <span class="g">먼저 보여줍니다</span>
+      </h1>
+      <p class="yt-sub">투표 당일 오전부터 시청자들이 어디에서도 볼 수 없는 실시간 경선 현황을 독점 중계하세요. 조회수가 폭발하는 선거 콘텐츠의 새로운 공식입니다.</p>
+      <p class="yt-tagline">공중파 출구조사 발표 전 수 시간이 바로 유튜브의 황금 시간대입니다</p>
+      <div class="yt-btns">
+        <a href="#yt-final" class="btn-yt fill">파트너십 문의</a>
+        <a href="#yt-opportunity" class="btn-yt outline">기회 보기</a>
+      </div>
+    </div>
+    <div class="yt-phone-wrap">
+      <div class="yt-phone">
+        <div class="ph-notch"><div class="ph-camera"></div><div class="ph-speaker"></div></div>
+        <div class="ph-screen">
+          <div class="ph-yt-header">
+            <div class="ph-yt-logo">You<span>Tube</span></div>
+            <div class="ph-live-count">👁 <span id="ytViewCount">12,847</span>명 시청 중</div>
+          </div>
+          <div class="ph-video-area">
+            <div class="ph-video-overlay">
+              <div class="ph-live-badge">LIVE</div>
+              <div class="ph-view-count">🔴 실시간</div>
+            </div>
+            <div class="ph-chart-mini">
+              <div class="ph-bar-mini" id="pb0" style="height:70%;background:linear-gradient(0deg,#CC0000,#FF6B6B)"></div>
+              <div class="ph-bar-mini" id="pb1" style="height:55%;background:linear-gradient(0deg,#B8972A,#F0D080)"></div>
+              <div class="ph-bar-mini" id="pb2" style="height:80%;background:linear-gradient(0deg,#CC0000,#FF6B6B)"></div>
+              <div class="ph-bar-mini" id="pb3" style="height:40%;background:linear-gradient(0deg,#1A3A8A,#2A5AE0)"></div>
+              <div class="ph-bar-mini" id="pb4" style="height:65%;background:linear-gradient(0deg,#CC0000,#FF6B6B)"></div>
+              <div class="ph-bar-mini" id="pb5" style="height:50%;background:linear-gradient(0deg,#B8972A,#F0D080)"></div>
+              <div class="ph-bar-mini" id="pb6" style="height:75%;background:linear-gradient(0deg,#CC0000,#FF6B6B)"></div>
+            </div>
+          </div>
+          <div class="ph-info">
+            <div class="ph-title">🔴 [선거 생방송] 투표 진행 현황 실시간 집계 · 동 단위 분석</div>
+            <div class="ph-channel"><span class="ph-verified">✓</span> 정치채널A · 구독자 120만</div>
+          </div>
+          <div class="ph-stats-row">
+            <div class="ph-stat"><span class="ph-stat-num r" id="ytLikes">47K</span><div class="ph-stat-label">좋아요</div></div>
+            <div class="ph-stat"><span class="ph-stat-num g" id="ytSubs">+2.3K</span><div class="ph-stat-label">신규 구독</div></div>
+            <div class="ph-stat"><span class="ph-stat-num" id="ytChat">8,921</span><div class="ph-stat-label">채팅</div></div>
+          </div>
+        </div>
+        <div class="ph-home"><div class="ph-home-bar"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 기회 -->
+<section id="yt-opportunity">
+  <div class="sw">
+    <div class="sl">The Opportunity</div>
+    <h2 class="st">왜 지금이<br><em>기회</em>인가</h2>
+    <p class="sd">공중파가 채우지 못하는 선거 당일 수 시간의 공백. 시청자들은 그 시간 동안 정보를 찾아 유튜브로 몰려옵니다.</p>
+    <div class="opp-grid">
+      <div class="og">
+        <div class="og-bg-num">01</div>
+        <span class="og-icon">📺</span>
+        <h3>공중파 공백 = 유튜브 폭발</h3>
+        <p>투표 진행 중 공중파는 수치 데이터가 없습니다. 시청자들은 "지금 어떻게 되고 있어?"를 검색하며 유튜브로 이동합니다. 이 시간이 바로 여러분의 골든타임입니다.</p>
+        <span class="og-tag">시청자 니즈 공백</span>
+      </div>
+      <div class="og">
+        <div class="og-bg-num">02</div>
+        <span class="og-icon">🚀</span>
+        <h3>독점 데이터 = 유일한 채널</h3>
+        <p>CampVote 데이터를 가진 채널만이 "지금 어디서 투표가 많이 이뤄지고 있나요?"에 답할 수 있습니다. 경쟁 채널이 갖지 못한 유일한 콘텐츠 소스입니다.</p>
+        <span class="og-tag">독점 콘텐츠</span>
+      </div>
+      <div class="og">
+        <div class="og-bg-num">03</div>
+        <span class="og-icon">💰</span>
+        <h3>선거 당일 최고 조회수</h3>
+        <p>선거 관련 유튜브 영상은 연간 최고 조회수를 기록합니다. 여기에 독점 실시간 데이터가 더해지면 슈퍼챗, 광고, 구독자 수가 동반 상승합니다.</p>
+        <span class="og-tag">수익 극대화</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 콘텐츠 포맷 -->
+<section id="yt-format">
+  <div class="sw">
+    <div class="sl">Content Formats</div>
+    <h2 class="st">이런 콘텐츠를<br><em>만들 수 있습니다</em></h2>
+    <div class="fmt-grid">
+      <div class="fmt-card">
+        <div class="fmt-num">01</div>
+        <h3>실시간 투표 현황 생중계</h3>
+        <p>투표 시작부터 마감까지 동 단위 현황을 실시간 차트로 보여주는 6~12시간 생방송. 채팅창이 폭발합니다.</p>
+        <div class="fmt-example"><strong>예시 제목:</strong> 🔴 [선거 LIVE] 지금 어디서 투표 많이 하나? 동 단위 실시간 집계 (오전 6시~)</div>
+      </div>
+      <div class="fmt-card">
+        <div class="fmt-num">02</div>
+        <h3>시간대별 긴급 분석 숏츠</h3>
+        <p>오전·점심·오후별로 "지금까지 상황 정리"를 60초 숏츠로 발행. 알고리즘 타기 최적입니다.</p>
+        <div class="fmt-example"><strong>예시 제목:</strong> 오후 3시 현재 투표 현황 ㄷㄷ... 이 동네가 압도적?? #선거 #경선</div>
+      </div>
+      <div class="fmt-card">
+        <div class="fmt-num">03</div>
+        <h3>이상 징후 긴급 특보</h3>
+        <p>특정 지역 투표율이 갑자기 급등·급락하면 즉각 "긴급 속보" 알림. 시청자들이 가장 반응하는 포맷입니다.</p>
+        <div class="fmt-example"><strong>예시 제목:</strong> 🚨 긴급 속보 | 강남3구 투표율 예상 대비 200%... 뭔가 터지나?</div>
+      </div>
+      <div class="fmt-card">
+        <div class="fmt-num">04</div>
+        <h3>공중파 결과 vs CampVote 예측 비교</h3>
+        <p>마감 후 공중파 개표 결과와 CampVote 집계를 실시간 비교. "우리가 먼저 맞췄다"는 신뢰도 콘텐츠입니다.</p>
+        <div class="fmt-example"><strong>예시 제목:</strong> 우리가 출구조사보다 5시간 먼저 예측했던 그 영상... 결과는?</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 수익화 -->
+<section id="yt-monetize">
+  <div class="sw">
+    <div class="sl">Monetization</div>
+    <h2 class="st">수익화 시나리오</h2>
+    <div class="mon-grid">
+      <div class="mon-cards">
+        <div class="mc">
+          <div class="mc-icon">💬</div>
+          <div class="mc-body">
+            <h4>슈퍼챗 · 슈퍼스티커</h4>
+            <p>선거 생방송 중 시청자들의 후원이 집중됩니다. 실시간 데이터에 반응하며 채팅이 활성화될수록 슈퍼챗 수입이 비례해 증가합니다.</p>
+            <div class="mc-amount">예상 수익 ↑↑↑</div>
+          </div>
+        </div>
+        <div class="mc">
+          <div class="mc-icon">📢</div>
+          <div class="mc-body">
+            <h4>스폰서십 · 광고 협찬</h4>
+            <p>선거 당일 최고 조회수 보장 콘텐츠. 정치·미디어 분야 광고주에게 높은 협상력을 갖습니다. PPL·브랜드 언급 기회 다수.</p>
+            <div class="mc-amount">광고 단가 ↑↑</div>
+          </div>
+        </div>
+        <div class="mc">
+          <div class="mc-icon">👥</div>
+          <div class="mc-body">
+            <h4>신규 구독자 폭발</h4>
+            <p>독점 데이터로 "이 채널만 갖고 있다"는 인식이 형성됩니다. 선거 당일 신규 구독자 유입이 평소 대비 수십 배 발생할 수 있습니다.</p>
+            <div class="mc-amount">채널 성장 가속</div>
+          </div>
+        </div>
+        <div class="mc">
+          <div class="mc-icon">🎯</div>
+          <div class="mc-body">
+            <h4>멤버십 특별 혜택</h4>
+            <p>멤버십 구독자에게 더 상세한 동 단위 데이터, 예측 분석을 선공개하는 차별 혜택으로 멤버십 전환율을 높입니다.</p>
+            <div class="mc-amount">멤버십 전환 ↑</div>
+          </div>
+        </div>
+      </div>
+      <div class="mon-stat-box">
+        <h4>선거 당일 예상 지표</h4>
+        <div class="ms-row"><span class="ms-label">생방송 동시 시청자</span><span class="ms-val">10만~50만+</span></div>
+        <div class="ms-row"><span class="ms-label">당일 총 조회수</span><span class="ms-val">100만~500만</span></div>
+        <div class="ms-row"><span class="ms-label">슈퍼챗 예상액</span><span class="ms-val">500만~3000만원</span></div>
+        <div class="ms-row"><span class="ms-label">신규 구독자</span><span class="ms-val">5천~5만명</span></div>
+        <div class="ms-row"><span class="ms-label">알고리즘 노출 급상승</span><span class="ms-val">7~30일 지속</span></div>
+        <div style="margin-top:16px;padding:12px 14px;background:rgba(255,0,0,.08);border:1px solid rgba(255,0,0,.15);font-size:11px;color:var(--silver);line-height:1.6">
+          * 채널 규모 및 선거 관심도에 따라 편차 있음.<br>구독자 50만+ 채널 기준 추정치.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- YT 요금 -->
+<section id="yt-price">
+  <div class="sw">
+    <div class="sl">Partnership Plans</div>
+    <h2 class="st">파트너십 플랜</h2>
+    <div class="yt-price-cards">
+      <div class="ypc">
+        <div class="ypc-name">스타터</div>
+        <div class="ypc-price" style="font-size:32px">협의</div>
+        <div class="ypc-period">단일 경선 / 1회</div>
+        <ul class="ypc-list">
+          <li>단일 선거구 데이터</li>
+          <li>웹 대시보드 제공</li>
+          <li>수동 데이터 복사</li>
+          <li>기본 기술 지원</li>
+        </ul>
+        <a href="#yt-final" class="ypc-btn">시작하기</a>
+      </div>
+      <div class="ypc">
+        <div class="ypc-badge">인기</div>
+        <div class="ypc-name">크리에이터 파트너</div>
+        <div class="ypc-price" style="font-size:32px">협의</div>
+        <div class="ypc-period">전국 경선 / 선거 당일</div>
+        <ul class="ypc-list">
+          <li>전국 주요 선거구 데이터</li>
+          <li>OBS/방송용 오버레이 위젯</li>
+          <li>실시간 API 연동</li>
+          <li>숏츠용 자동 클립 데이터</li>
+          <li>긴급 알림 시스템</li>
+          <li>전담 운영 지원</li>
+        </ul>
+        <a href="#yt-final" class="ypc-btn yt-fill">파트너 신청</a>
+      </div>
+      <div class="ypc">
+        <div class="ypc-name">미디어 독점</div>
+        <div class="ypc-price">별도<span>협의</span></div>
+        <div class="ypc-period">독점 데이터 계약</div>
+        <ul class="ypc-list">
+          <li>전국 전 선거구 독점</li>
+          <li>타 채널 공급 제한</li>
+          <li>브랜딩 공동 개발</li>
+          <li>데이터 분석 전문가 지원</li>
+          <li>선거 특집 기획 협력</li>
+        </ul>
+        <a href="#yt-final" class="ypc-btn">독점 문의</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- YT CTA -->
+<section id="yt-final" class="final-cta-section yt-cta">
+  <div class="fcta-bg-yt"></div>
+  <div class="fcta-inner">
+    <span class="fcta-label yt-l">Contact — 유튜브 파트너십</span>
+    <h2 class="fcta-title">공중파도 모르는 걸<br><span style="background:linear-gradient(135deg,#CC0000,var(--yt),var(--yt2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">당신이 먼저</span> 보여주세요</h2>
+    <p class="fcta-sub">파트너십 문의 시 채널 맞춤 활용 전략을 함께 제안드립니다</p>
+    <div class="fcta-contact">
+      <div class="contact-item"><div class="contact-label">전화</div><div class="contact-val yt-val">010-5897-9982</div></div>
+      <div class="contact-item"><div class="contact-label">이메일</div><div class="contact-val yt-val">voiceofpusan@gmail.com</div></div>
+      <div class="contact-item"><div class="contact-label">카카오톡</div><div class="contact-val yt-val">jamesfund</div></div>
+    </div>
+    <div style="margin-top:32px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="mailto:voiceofpusan@gmail.com" class="btn-yt fill">파트너십 문의</a>
+      <a href="투표모니터링시스템공중파제안서.html" class="btn-yt outline">← 방송사 제안 보기</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">CampVote</div>
+  <div class="footer-mid">실시간 경선 투표 집계 플랫폼 · © 2026 CampVote · campvote.kr</div>
+  <div class="footer-right">선거 데이터의 새로운 기준<br><span style="color:var(--gold)">Powered by Supabase Realtime</span></div>
+</footer>
+
+<script>
+// ── 파티클 ──
+const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d')
+let W=cvs.width=innerWidth,H=cvs.height=innerHeight
+window.addEventListener('resize',()=>{W=cvs.width=innerWidth;H=cvs.height=innerHeight})
+const pts=Array.from({length:50},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,r:Math.random()*1.2+.3,a:Math.random()*.3+.08}))
+function drawPts(){
+  ctx.clearRect(0,0,W,H)
+  pts.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy
+    if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2)
+    ctx.fillStyle=`rgba(255,100,100,${p.a})`;ctx.fill()
+  })
+  pts.forEach((a,i)=>pts.slice(i+1).forEach(b=>{
+    const d=Math.hypot(a.x-b.x,a.y-b.y)
+    if(d<110){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(255,80,80,${.06*(1-d/110)})`;ctx.lineWidth=.4;ctx.stroke()}
+  }))
+  requestAnimationFrame(drawPts)
+}
+drawPts()
+
+// ── 진행바 ──
+window.addEventListener('scroll',()=>{
+  document.getElementById('pb').style.width=(scrollY/(document.body.scrollHeight-innerHeight)*100)+'%'
+})
+
+// ── 스크롤 인트로 ──
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis','visible')})
+},{threshold:.12})
+document.querySelectorAll('.fade-up,.fade-left,.fade-right,.og,.fmt-card,.mc,.mon-stat-box,.ypc').forEach(el=>io.observe(el))
+
+// ── YT 폰 통계 업데이트 ──
+let ytViews=12847,ytL=47,ytS=2300,ytC=8921
+setInterval(()=>{
+  ytViews+=Math.floor(Math.random()*15+5)
+  document.getElementById('ytViewCount').textContent=ytViews.toLocaleString()
+  if(Math.random()>.6){ytS+=Math.floor(Math.random()*3+1);document.getElementById('ytSubs').textContent='+'+(ytS/100).toFixed(1)+'K'}
+  ytC+=Math.floor(Math.random()*8);document.getElementById('ytChat').textContent=ytC.toLocaleString()
+},1800)
+
+// ── YT 폰 차트 바 애니메이션 ──
+const ytBars=['pb0','pb1','pb2','pb3','pb4','pb5','pb6']
+setInterval(()=>{
+  const idx=Math.floor(Math.random()*ytBars.length)
+  const h=Math.floor(Math.random()*50+30)
+  document.getElementById(ytBars[idx]).style.height=h+'%'
+},1200)
+</script>
+</body>
+</html>
